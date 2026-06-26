@@ -24,6 +24,7 @@ export default function ProfileEditForm({
   isNew = false,
 }: ProfileEditFormProps) {
   const [name, setName] = useState(contributor.name || "");
+  const [email, setEmail] = useState(contributor.email || auth.currentUser?.email || "");
   const [role, setRole] = useState(contributor.role || "");
   const [company, setCompany] = useState(contributor.company || "");
   const [phone, setPhone] = useState(contributor.phone || "");
@@ -231,7 +232,7 @@ export default function ProfileEditForm({
       // Build updated values conforming to Security rules:
       const patchData: any = {
         name: name.trim(),
-        email: (contributor.email || auth.currentUser?.email || "").trim(), // ALWAYS include email to fulfill the rules and schema!
+        email: email.trim(), // ALWAYS include email to fulfill the rules and schema!
         role: role.trim(),
         bio: bio.trim(),
         skills: skillsList,
@@ -523,6 +524,17 @@ export default function ProfileEditForm({
               value={phone}
               placeholder="e.g. +1 (555) 019-2834"
               onChange={(e) => setPhone(e.target.value)}
+              className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing}`}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-705 mb-1">Contact Email *</label>
+            <input
+              type="email"
+              required
+              value={email}
+              placeholder="e.g. name@domain.com"
+              onChange={(e) => setEmail(e.target.value)}
               className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing}`}
             />
           </div>
