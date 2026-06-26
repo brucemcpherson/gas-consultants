@@ -27,3 +27,5 @@ An elegant, highly optimized directory application designed to organize, search,
 
 
 [Original source slides - Apps Script Consultants Directory](https://docs.google.com/presentation/d/1U1y6Vjf5ClEof15JLw4qg7tpjpo4MHk7uhVKpjVkA9M/edit?usp=sharing)
+
+Ingestion powered by [gas-fakes](https://github.com/brucemcpherson/gas-fakes)
