@@ -13,7 +13,8 @@ import {
   Sparkles,
   Eye,
   EyeOff,
-  Flag
+  Flag,
+  Unlock
 } from "lucide-react";
 import { Contributor, DirectMessage } from "../types";
 import { db, handleFirestoreError, OperationType } from "../firebase";
@@ -170,6 +171,21 @@ export default function AdminPanel({
     }
   };
 
+  // Unclaim a profile (remove userId link)
+  const handleUnclaimContributor = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to remove the 'claimed' flag and unlink the Google Account associated with "${name}"?`)) return;
+
+    try {
+      const docRef = doc(db, "contributors", id);
+      await updateDoc(docRef, { userId: null });
+      onRefreshContributors();
+      showFeedback(`Successfully unlinked Google Account for "${name}".`);
+    } catch (err: any) {
+      console.error("Unclaim error:", err);
+      showFeedback(`Failed to unlink profile: ${err.message || err}`, "error");
+    }
+  };
+
   // Delete Message audit logging
   const handleDeleteMessage = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this message?")) return;
@@ -293,6 +309,11 @@ export default function AdminPanel({
                     <div className="min-w-0 flex-1">
                       <h4 className="font-semibold text-slate-900 text-xs sm:text-sm flex flex-wrap items-center gap-1.5 leading-snug">
                         <span>{c.name}</span>
+                        {c.userId && (
+                          <span className="px-1.5 py-0.5 text-[9px] bg-blue-50 text-blue-700 rounded font-bold border border-blue-100">
+                            Claimed
+                          </span>
+                        )}
                         {c.hidden && (
                           <span className="px-1.5 py-0.5 text-[9px] bg-slate-100 text-slate-600 rounded font-bold border border-slate-200">
                             Hidden
@@ -310,6 +331,17 @@ export default function AdminPanel({
                       </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
+                      {/* Unclaim Toggle */}
+                      {c.userId && (
+                        <button
+                          onClick={() => handleUnclaimContributor(c.id, c.name)}
+                          title="Unclaim profile (unlink Google account)"
+                          className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-slate-50 rounded-xl transition"
+                        >
+                          <Unlock className="h-4.5 w-4.5" />
+                        </button>
+                      )}
+
                       {/* Hide / Unhide Toggle */}
                       <button
                         onClick={() => handleToggleHideContributor(c.id, c.hidden || false)}

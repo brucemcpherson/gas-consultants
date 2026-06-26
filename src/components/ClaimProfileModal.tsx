@@ -1,17 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   X,
-  Mail,
-  Key,
   Shield,
   CheckCircle,
   AlertCircle,
   Loader2,
   Lock,
-  ArrowRight
+  Mail,
+  UserCheck
 } from "lucide-react";
 import { Contributor } from "../types";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
 interface ClaimProfileModalProps {
   isOpen: boolean;
@@ -28,113 +29,57 @@ export default function ClaimProfileModal({
   currentUser,
   onSuccess
 }: ClaimProfileModalProps) {
-  const [step, setStep] = useState<"init" | "verify" | "success">("init");
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
+  const [step, setStep] = useState<"init" | "success">("init");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [devOtp, setDevOtp] = useState<string | null>(null);
+  const [useAccountEmail, setUseAccountEmail] = useState(true);
+  const [customEmail, setCustomEmail] = useState("");
+
+  // Reset state when modal opens/changes
+  useEffect(() => {
+    if (isOpen) {
+      setStep("init");
+      setError(null);
+      setUseAccountEmail(true);
+      setCustomEmail("");
+    }
+  }, [isOpen, contributor]);
 
   if (!isOpen || !contributor || !currentUser) return null;
 
-  const hasExistingEmail = !!contributor.email && contributor.email.trim().length > 0;
+  const targetEmail = useAccountEmail 
+    ? (currentUser.email || "") 
+    : (customEmail.trim() || currentUser.email || "");
 
-  // Step 1: Handle initial claim trigger
-  const handleInitialClaim = async () => {
-    setLoading(true);
-    setError(null);
-    setNotice(null);
-    setDevOtp(null);
-
-    try {
-      if (hasExistingEmail) {
-        // Send email notification & claim directly
-        const response = await fetch("/api/claim/notify-and-claim", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contributorId: contributor.id,
-            claimantUid: currentUser.uid,
-            claimantName: currentUser.displayName || currentUser.email?.split("@")[0] || "User",
-            claimantEmail: currentUser.email || ""
-          })
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to notify and claim profile");
-        }
-
-        if (data.notice) {
-          setNotice(data.notice);
-        }
-        setStep("success");
-      } else {
-        // No existing email, validate user-entered email first
-        if (!email.trim() || !email.includes("@")) {
-          throw new Error("Please enter a valid email address");
-        }
-
-        const response = await fetch("/api/claim/send-code", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: email.trim(),
-            contributorId: contributor.id
-          })
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to send verification code");
-        }
-
-        if (data.notice) {
-          setNotice(data.notice);
-        }
-        if (data.otpCodeFallback) {
-          setDevOtp(data.otpCodeFallback);
-        }
-        setStep("verify");
-      }
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Step 2: Handle code verification
-  const handleVerifyCode = async () => {
-    if (!code.trim() || code.trim().length !== 6) {
-      setError("Please enter a valid 6-digit verification code");
-      return;
-    }
-
+  const handleClaimProfile = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch("/api/claim/verify-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          code: code.trim(),
-          contributorId: contributor.id,
-          userId: currentUser.uid
-        })
+      const docRef = doc(db, "contributors", contributor.id);
+      
+      // Step 1: Claim ownership of the profile card (links userId and updatedAt)
+      // This is permitted by the "Claim profile (if currently unclaimed)" security rule
+      await updateDoc(docRef, {
+        userId: currentUser.uid,
+        updatedAt: serverTimestamp()
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Verification failed");
+      // Step 2: Now that the user owns the card, update the contact email if desired or if it is empty
+      // This is permitted by the "Contributor can edit their own profile" security rule
+      const hasEmail = !!contributor.email && contributor.email.trim().length > 0;
+      if (!hasEmail || targetEmail !== contributor.email) {
+        await updateDoc(docRef, {
+          email: targetEmail.trim(),
+          updatedAt: serverTimestamp()
+        });
       }
 
       setStep("success");
     } catch (err: any) {
-      setError(err.message || "Invalid or expired verification code");
+      console.error("Direct Firestore claim error:", err);
+      setError(err.message || "Failed to claim profile in the database");
     } finally {
       setLoading(false);
     }
@@ -142,11 +87,7 @@ export default function ClaimProfileModal({
 
   const handleCloseReset = () => {
     setStep("init");
-    setEmail("");
-    setCode("");
     setError(null);
-    setNotice(null);
-    setDevOtp(null);
     onClose();
   };
 
@@ -193,119 +134,56 @@ export default function ClaimProfileModal({
 
           {/* Steps */}
           {step === "init" && (
-            <div className="space-y-4">
-              {hasExistingEmail ? (
-                /* Contributor ALREADY has an email */
-                <div className="space-y-4">
-                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-xs text-slate-700 leading-relaxed">
-                    <p className="font-semibold text-blue-800 mb-1">Email Protection Active</p>
-                    This profile is registered with the email address:
-                    <div className="my-2 select-all font-mono text-sm font-semibold text-slate-800 bg-white border border-slate-200 rounded px-2 py-1 max-w-max">
-                      {contributor.email}
-                    </div>
-                    We will send an automated security alert to this email address notifying them that you are claiming the profile as your custom account.
-                  </div>
-
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs text-slate-600">
-                    <p className="font-semibold text-slate-800 mb-1">Claimant Identity</p>
-                    Your authorized Google account is:
-                    <div className="mt-1 font-medium text-slate-800 select-text font-mono">
-                      {currentUser.displayName} ({currentUser.email})
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                /* Contributor DOES NOT have an email */
-                <div className="space-y-4">
-                  <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-4 text-xs text-slate-700 leading-relaxed">
-                    <p className="font-semibold text-amber-800 mb-1">No Email Registered</p>
-                    This profile currently has no registered email. To claim it, you must enter your email address below. We will send a 6-digit confirmation code to verify your access.
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">
-                      Your Email Address
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="email"
-                        required
-                        placeholder="you@company.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {error && (
-                <div className="flex gap-2 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600 leading-relaxed">
-                  <AlertCircle className="h-4.5 w-4.5 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <button
-                type="button"
-                disabled={loading}
-                onClick={handleInitialClaim}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 transition-colors cursor-pointer"
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : hasExistingEmail ? (
-                  <>
-                    <Lock className="h-4 w-4" />
-                    <span>Send Notice & Claim Profile</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Send Verification Code</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-
-          {step === "verify" && (
-            <div className="space-y-4">
+            <form onSubmit={handleClaimProfile} className="space-y-4">
               <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-xs text-slate-700 leading-relaxed">
-                <p className="font-semibold text-blue-800 mb-1">Verify Your Email</p>
-                We have dispatched a 6-digit security code to <b>{email}</b>. Please enter the code below to complete the claim.
+                <p className="font-semibold text-blue-800 mb-1">Direct Profile Linking</p>
+                You are claiming this unclaimed contributor profile. Since you are securely signed in with Google, you can instantly link this card to your account and manage it.
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  6-Digit Verification Code
-                </label>
-                <div className="relative">
-                  <Key className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    maxLength={6}
-                    required
-                    placeholder="Enter Code (e.g. 123456)"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    className="w-full tracking-[4px] text-center rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-base font-bold text-slate-800 placeholder-slate-400 placeholder:tracking-normal outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  />
+              {/* Contact Email setting */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-slate-700">Set Profile Contact Email</label>
+                
+                <div className="space-y-2">
+                  <label className="flex items-start gap-2.5 rounded-xl border border-slate-100 bg-slate-50/50 p-3 text-xs cursor-pointer hover:bg-slate-50 transition">
+                    <input
+                      type="radio"
+                      checked={useAccountEmail}
+                      onChange={() => setUseAccountEmail(true)}
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <span className="font-semibold text-slate-700">Use my Google Account email</span>
+                      <p className="text-slate-500 mt-0.5 font-mono text-[11px]">{currentUser.email}</p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 rounded-xl border border-slate-100 bg-slate-50/50 p-3 text-xs cursor-pointer hover:bg-slate-50 transition">
+                    <input
+                      type="radio"
+                      checked={!useAccountEmail}
+                      onChange={() => setUseAccountEmail(false)}
+                      className="mt-0.5"
+                    />
+                    <div className="flex-1">
+                      <span className="font-semibold text-slate-700">Use a different contact email</span>
+                      {!useAccountEmail && (
+                        <div className="mt-2 relative">
+                          <Mail className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="email"
+                            required
+                            placeholder="e.g. name@domain.com"
+                            value={customEmail}
+                            onChange={(e) => setCustomEmail(e.target.value)}
+                            className="w-full rounded-lg border border-slate-200 pl-9 pr-3 py-1.5 text-xs outline-none focus:border-slate-400 focus:ring-1 focus:ring-blue-100 font-sans"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </label>
                 </div>
               </div>
-
-              {/* Dev Simulation Notice */}
-              {devOtp && (
-                <div className="rounded-xl border border-amber-100 bg-amber-50 p-3.5 text-xs text-slate-700 leading-relaxed">
-                  <p className="font-bold text-amber-800 mb-1">🛠️ Local Dev Simulation</p>
-                  No mail servers are configured. We intercepted the OTP code for your convenience:
-                  <div className="mt-2 font-mono text-base font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-2.5 py-1 text-center select-all max-w-[120px] mx-auto">
-                    {devOtp}
-                  </div>
-                </div>
-              )}
 
               {error && (
                 <div className="flex gap-2 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600 leading-relaxed">
@@ -315,29 +193,20 @@ export default function ClaimProfileModal({
               )}
 
               <button
-                type="button"
+                type="submit"
                 disabled={loading}
-                onClick={handleVerifyCode}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 transition-colors cursor-pointer"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 transition-colors cursor-pointer font-sans"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <>
                     <Lock className="h-4 w-4" />
-                    <span>Verify & Claim Profile</span>
+                    <span>Link Profile & Update Email</span>
                   </>
                 )}
               </button>
-
-              <button
-                type="button"
-                onClick={() => setStep("init")}
-                className="w-full text-center text-xs font-semibold text-blue-600 hover:underline transition-colors focus:outline-none"
-              >
-                Change email address
-              </button>
-            </div>
+            </form>
           )}
 
           {step === "success" && (
@@ -348,15 +217,9 @@ export default function ClaimProfileModal({
               <div>
                 <h4 className="text-lg font-bold text-slate-800">Profile Claimed!</h4>
                 <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
-                  Excellent! The profile of <b>{contributor.name}</b> has been successfully associated with your account. You can now update edits and manage your data directly.
+                  Excellent! The profile of <b>{contributor.name}</b> has been successfully associated with your account, and your contact email is updated to <b className="font-mono">{targetEmail}</b>. You can now update your details and manage your profile card directly.
                 </p>
               </div>
-
-              {notice && (
-                <div className="rounded-xl bg-slate-50 border border-slate-100 p-3 text-[11px] text-slate-500 leading-relaxed select-text font-medium text-left">
-                  <b>System Notice:</b> {notice}
-                </div>
-              )}
 
               <button
                 type="button"
@@ -364,7 +227,7 @@ export default function ClaimProfileModal({
                   onSuccess();
                   handleCloseReset();
                 }}
-                className="mt-2 w-full rounded-xl bg-slate-905 bg-slate-900 border border-slate-800 text-white font-semibold py-2.5 text-sm hover:bg-slate-850 active:bg-slate-950 transition-colors cursor-pointer"
+                className="mt-2 w-full rounded-xl bg-slate-900 text-white font-semibold py-2.5 text-sm hover:bg-slate-800 active:bg-slate-950 transition-colors cursor-pointer"
               >
                 Done
               </button>
