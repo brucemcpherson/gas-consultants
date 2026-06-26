@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "contributor": {
+      "title": "Contributor",
+      "description": "Details of a contributor in the directory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string" },
+        "bio": { "type": "string" },
+        "skills": { "type": "array" },
+        "github": { "type": "string" },
+        "linkedin": { "type": "string" },
+        "twitter": { "type": "string" },
+        "website": { "type": "string" },
+        "company": { "type": "string" },
+        "phone": { "type": "string" },
+        "slideNotes": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved"] },
+        "systemRole": { "type": "string", "enum": ["contributor", "admin"] },
+        "slideIndex": { "type": "integer" },
+        "userId": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "hidden": { "type": "boolean" },
+        "flagged": { "type": "boolean" },
+        "flagCount": { "type": "integer" },
+        "flaggedReasons": { "type": "array" },
+        "badges": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "role", "bio"]
+    },
+    "message": {
+      "title": "Message",
+      "description": "A message sent to a contributor from a user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "contributorId": { "type": "string" },
+        "contributorEmail": { "type": "string", "format": "email" },
+        "contributorUserId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderEmail": { "type": "string", "format": "email" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["contributorId", "contributorEmail", "senderName", "senderEmail", "subject", "message"]
+    },
+    "admin": {
+      "title": "Admin",
+      "description": "A system administrator",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email"]
+    },
+    "report": {
+      "title": "Report",
+      "description": "A report filed against inappropriate postings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "contributorId": { "type": "string" },
+        "contributorName": { "type": "string" },
+        "reason": { "type": "string" },
+        "explanation": { "type": "string" },
+        "reporterEmail": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["contributorId", "contributorName", "reason", "explanation"]
+    }
+  },
+  "firestore": {
+    "contributors/{contributorId}": {
+      "schema": "contributor",
+      "description": "Collection of contributor profiles"
+    },
+    "messages/{messageId}": {
+      "schema": "message",
+      "description": "Collection of messages sent to contributors"
+    },
+    "reports/{reportId}": {
+      "schema": "report",
+      "description": "Collection of content flag reports"
+    },
+    "admins/{adminId}": {
+      "schema": "admin",
+      "description": "Collection of system administrators"
+    }
+  }
+}

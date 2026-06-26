@@ -1,0 +1,22 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Slide extraction / data caches
+slides-cache.json
+
+# Firebase CLI cache, logs, and sandbox-specific environment configuration
+.firebase/
+firebase-debug.log
+firebase-applet-config.json
+
+# IDE files
+.vscode/
+.idea/
+.env
+.gemini

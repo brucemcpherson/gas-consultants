@@ -1,0 +1,6 @@
+{
+  "name": "Consultant Directory",
+  "description": "An interactive mobile-friendly directory of consultants extracted from Google Slides, powered by Firestore, supporting search, details updating, admin management, and consultant contact.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
