@@ -173,17 +173,17 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-xs">
-      <div className="relative w-full max-w-4xl h-[80vh] flex flex-col rounded-2xl bg-white shadow-2xl transition-all overflow-hidden border border-slate-100">
+      <div className="relative w-full max-w-4xl h-[80vh] flex flex-col rounded-2xl bg-white dark:bg-slate-905 shadow-2xl transition-all overflow-hidden border border-slate-100 dark:border-slate-800">
         
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 px-6 py-4 bg-slate-50/50 dark:bg-slate-950/40 gap-4">
           <div className="flex items-center gap-2.5">
-            <div className={`p-2 rounded-xl bg-blue-50 text-blue-600`}>
+            <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
               <Inbox className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-sans text-lg font-bold text-slate-900">My Inbox</h3>
-              <p className="text-xs text-slate-500">
+              <h3 className="font-sans text-lg font-bold text-slate-900 dark:text-white">My Inbox</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 You have {messages.filter(m => !m.read).length} unread contact inquiries
               </p>
             </div>
@@ -196,20 +196,20 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
                 {notificationPermission === "default" && (
                   <button
                     onClick={handleRequestPermission}
-                    className="text-[10px] bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer"
+                    className="text-[10px] bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 cursor-pointer"
                     title="Enable system desktop push alert banners when new messages arrive"
                   >
                     <span>🔔 Enable Desktop Alerts</span>
                   </button>
                 )}
                 {notificationPermission === "granted" && (
-                  <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg font-sans font-extrabold flex items-center gap-1">
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/30 px-2.5 py-1 rounded-lg font-sans font-extrabold flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
                     <span>Desktop Alerts Active</span>
                   </span>
                 )}
                 {notificationPermission === "denied" && (
-                  <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-lg font-sans font-semibold flex items-center gap-1">
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/30 px-2.5 py-1 rounded-lg font-sans font-semibold flex items-center gap-1">
                     <span>Alerts Blocked by Browser</span>
                   </span>
                 )}
@@ -218,7 +218,7 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
 
             <button
               onClick={onClose}
-              className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+              className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
@@ -226,31 +226,31 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex min-h-0 divide-x divide-slate-100">
+        <div className="flex-1 flex min-h-0 divide-x divide-slate-100 dark:divide-slate-800">
           
           {/* Left Column: Messages List */}
-          <div className={`${selectedMessage ? "hidden md:flex" : "flex"} w-full md:w-2/5 flex-col min-h-0 bg-slate-50/25`}>
+          <div className={`${selectedMessage ? "hidden md:flex" : "flex"} w-full md:w-2/5 flex-col min-h-0 bg-slate-50/25 dark:bg-slate-950/10`}>
             
             {errorMessage && (
-              <div className="p-4 bg-red-50 text-red-700 text-xs flex items-center gap-2 border-b border-red-100">
+              <div className="p-4 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 text-xs flex items-center gap-2 border-b border-red-100 dark:border-red-900/40">
                 <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
                 <span>{errorMessage}</span>
               </div>
             )}
  
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 min-h-0">
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 min-h-0">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className={`h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-current ${activeTheme.primaryText}`}></div>
+                  <div className={`h-8 w-8 animate-spin rounded-full border-2 border-slate-200 dark:border-slate-850 border-t-current ${activeTheme.primaryText}`}></div>
                   <p className="mt-3 text-xs text-slate-400">Loading messages...</p>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center px-4">
-                  <div className="p-4 rounded-full bg-slate-50 text-slate-350 mb-3">
+                  <div className="p-4 rounded-full bg-slate-50 dark:bg-slate-900 text-slate-355 dark:text-slate-600 mb-3">
                     <Inbox className="h-10 w-10 stroke-[1.5]" />
                   </div>
-                  <p className="font-sans text-sm font-semibold text-slate-800">Your Inbox is Empty</p>
-                  <p className="mt-1 text-xs text-slate-400 max-w-xs">
+                  <p className="font-sans text-sm font-semibold text-slate-800 dark:text-slate-200">Your Inbox is Empty</p>
+                  <p className="mt-1 text-xs text-slate-400 dark:text-slate-500 max-w-xs">
                     When someone submits the contact form on your public contributor card, it will show up here.
                   </p>
                 </div>
@@ -263,28 +263,28 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
                       onClick={() => handleSelectMessage(msg)}
                       className={`group relative p-5 flex flex-col gap-2 cursor-pointer transition-all ${
                         isSelected 
-                          ? `${activeTheme.primaryBgLight} border-l-4 ${activeBorderClass}` 
-                          : "bg-white hover:bg-slate-50/75 border-l-4 border-l-transparent"
+                          ? `${activeTheme.primaryBgLight} dark:bg-slate-900 border-l-4 ${activeBorderClass}` 
+                          : "bg-white dark:bg-slate-905 hover:bg-slate-50/75 dark:hover:bg-slate-900/40 border-l-4 border-l-transparent"
                       }`}
                     >
                       {/* Top row: sender & date */}
                       <div className="flex items-center justify-between gap-2">
-                        <span className={`text-xs sm:text-sm font-bold truncate max-w-[130px] ${!msg.read ? "text-slate-900" : "text-slate-550"}`}>
+                        <span className={`text-xs sm:text-sm font-bold truncate max-w-[130px] ${!msg.read ? "text-slate-900 dark:text-white" : "text-slate-550 dark:text-slate-400"}`}>
                           {msg.senderName}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap flex items-center gap-1">
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap flex items-center gap-1">
                           <Clock className="h-3 w-3 shrink-0 opacity-60" />
                           {formatTimestamp(msg.createdAt)}
                         </span>
                       </div>
  
                       {/* Subject */}
-                      <span className={`text-xs sm:text-sm font-semibold truncate ${!msg.read ? "text-slate-900 font-extrabold" : "text-slate-650"}`}>
+                      <span className={`text-xs sm:text-sm font-semibold truncate ${!msg.read ? "text-slate-900 dark:text-white font-extrabold" : "text-slate-650 dark:text-slate-300"}`}>
                         {msg.subject}
                       </span>
  
                       {/* Body excerpt */}
-                      <p className="text-xs text-slate-450 line-clamp-3 mt-1 leading-relaxed break-words">
+                      <p className="text-xs text-slate-450 dark:text-slate-400 line-clamp-3 mt-1 leading-relaxed break-words">
                         {msg.message}
                       </p>
  
@@ -293,14 +293,14 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
                         <button
                           onClick={(e) => handleToggleRead(msg, e)}
                           title={msg.read ? "Mark as Unread" : "Mark as Read"}
-                          className="p-1.5 rounded-md bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition shadow-xs"
+                          className="p-1.5 rounded-md bg-white dark:bg-slate-850 border border-slate-100 dark:border-slate-800 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 transition shadow-xs cursor-pointer"
                         >
                           {msg.read ? <Mail className="h-3.5 w-3.5" /> : <MailOpen className="h-3.5 w-3.5" />}
                         </button>
                         <button
                           onClick={(e) => handleDeleteMessage(msg.id, e)}
                           title="Delete Message"
-                          className="p-1.5 rounded-md bg-white border border-slate-100 text-slate-400 hover:text-red-600 hover:bg-red-50 transition shadow-xs"
+                          className="p-1.5 rounded-md bg-white dark:bg-slate-850 border border-slate-100 dark:border-slate-800 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800 transition shadow-xs cursor-pointer"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -308,7 +308,7 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
  
                       {/* Blue unread dot indicator */}
                       {!msg.read && (
-                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-600" />
+                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-500" />
                       )}
                     </div>
                   );
@@ -318,30 +318,30 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
           </div>
  
           {/* Right Column: Message Detail View */}
-          <div className={`${selectedMessage ? "flex" : "hidden md:flex"} flex-1 flex-col min-h-0 bg-white`}>
+          <div className={`${selectedMessage ? "flex" : "hidden md:flex"} flex-1 flex-col min-h-0 bg-white dark:bg-slate-905`}>
             {selectedMessage ? (
               <div className="flex-1 flex flex-col min-h-0">
                 {/* Detail Header */}
-                <div className="border-b border-slate-100 p-6 bg-slate-50/15">
+                <div className="border-b border-slate-100 dark:border-slate-800 p-6 bg-slate-50/15 dark:bg-slate-950/20">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       {/* Back button on mobile */}
                       <button
                         onClick={() => setSelectedMessage(null)}
-                        className="md:hidden mb-3 inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-800 transition"
+                        className="md:hidden mb-3 inline-flex items-center gap-1 text-xs font-bold text-slate-550 dark:text-slate-450 hover:text-slate-800 dark:hover:text-white transition cursor-pointer"
                       >
                         <ChevronRight className="h-4 w-4 rotate-180" />
                         <span>Back to Inbox</span>
                       </button>
-                      <h4 className="font-sans text-base sm:text-lg font-bold text-slate-900 leading-snug break-words">
+                      <h4 className="font-sans text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug break-words">
                         {selectedMessage.subject}
                       </h4>
                       <div className="flex flex-col gap-1 mt-2">
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                          <span className="font-bold text-slate-705">{selectedMessage.senderName}</span>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                          <span className="font-bold text-slate-705 dark:text-slate-300">{selectedMessage.senderName}</span>
                           <span className="truncate">&lt;{selectedMessage.senderEmail}&gt;</span>
                         </div>
-                        <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                        <div className="text-[10px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1">
                           <Clock className="h-3 w-3 stroke-[1.75]" />
                           Received on {formatTimestamp(selectedMessage.createdAt)}
                         </div>
@@ -351,7 +351,7 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={(e) => handleToggleRead(selectedMessage, e)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold hover:bg-slate-50 transition text-slate-600`}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition text-slate-600 dark:text-slate-300 cursor-pointer"
                       >
                         {selectedMessage.read ? (
                           <>
@@ -367,7 +367,7 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
                       </button>
                       <button
                         onClick={() => handleDeleteMessage(selectedMessage.id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition text-slate-600"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-semibold hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-600 dark:hover:text-red-400 hover:border-red-105 transition text-slate-600 dark:text-slate-300 cursor-pointer"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline">Delete</span>
@@ -377,18 +377,18 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
                 </div>
  
                 {/* Detail Body */}
-                <div className="flex-1 overflow-y-auto p-6 sm:p-8 whitespace-pre-wrap leading-relaxed text-slate-800 text-sm sm:text-base font-sans selection:bg-blue-100 select-text">
+                <div className="flex-1 overflow-y-auto p-6 sm:p-8 whitespace-pre-wrap leading-relaxed text-slate-800 dark:text-slate-200 text-sm sm:text-base font-sans selection:bg-blue-105 select-text">
                   {selectedMessage.message}
                 </div>
  
                 {/* Detail Footer: Quick Reply */}
-                <div className="border-t border-slate-100 p-4 bg-slate-50/25 flex items-center justify-between gap-3">
-                  <span className="text-[11px] text-slate-400 truncate">
-                    Need to respond? Direct emails go to <span className="font-semibold text-slate-600">{selectedMessage.senderEmail}</span>
+                <div className="border-t border-slate-100 dark:border-slate-800 p-4 bg-slate-50/25 dark:bg-slate-950/20 flex items-center justify-between gap-3">
+                  <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate">
+                    Need to respond? Direct emails go to <span className="font-semibold text-slate-600 dark:text-slate-300">{selectedMessage.senderEmail}</span>
                   </span>
                   <a
                     href={`mailto:${selectedMessage.senderEmail}?subject=Re: ${encodeURIComponent(selectedMessage.subject)}`}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-xs hover:bg-slate-800 transition shrink-0"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 dark:bg-slate-800 text-white dark:text-slate-105 rounded-xl text-xs font-bold shadow-xs hover:bg-slate-800 dark:hover:bg-slate-700 transition shrink-0 cursor-pointer"
                   >
                     <Send className="h-3.5 w-3.5" />
                     <span>Reply</span>
@@ -396,12 +396,12 @@ export default function MyInboxModal({ currentUser, onClose, activeTheme }: MyIn
                 </div>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
-                <div className="p-4 rounded-full bg-slate-50 text-slate-300 mb-2">
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-450 dark:text-slate-500">
+                <div className="p-4 rounded-full bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-700 mb-2">
                   <Mail className="h-8 w-8 stroke-[1.5]" />
                 </div>
-                <h4 className="font-sans text-sm font-semibold text-slate-600">No Message Selected</h4>
-                <p className="text-xs text-slate-400 max-w-xs mt-1">
+                <h4 className="font-sans text-sm font-semibold text-slate-600 dark:text-slate-300">No Message Selected</h4>
+                <p className="text-xs text-slate-400 dark:text-slate-500 max-w-xs mt-1">
                   Choose an inquiry from the left panel to inspect the full contents, sender information, and reply directly.
                 </p>
               </div>

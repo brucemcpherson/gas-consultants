@@ -1,10 +1,35 @@
 import React, { useState } from "react";
 import { User } from "firebase/auth";
-import { Save, AlertTriangle, CheckCircle, ArrowLeft, Shield, Camera, Trash2, Upload, EyeOff, Plus, Link2 } from "lucide-react";
+import { Save, AlertTriangle, CheckCircle, ArrowLeft, Shield, Camera, Trash2, Upload, EyeOff, Plus, Link2, Eye, Edit3 } from "lucide-react";
 import { Contributor, AdditionalLink } from "../types";
 import { db, handleFirestoreError, OperationType, auth } from "../firebase";
 import { doc, updateDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { ThemeColors } from "../lib/theme";
+import Markdown from "react-markdown";
+import { sanitizeMarkdownLinks } from "../lib/markdown";
+
+const markdownComponents = {
+  p: ({ children }: any) => <p className="mb-1.5 last:mb-0 leading-relaxed">{children}</p>,
+  a: ({ href, children }: any) => (
+    <a 
+      href={href} 
+      target="_blank" 
+      rel="noopener noreferrer" 
+      className="text-blue-600 hover:underline font-semibold"
+    >
+      {children}
+    </a>
+  ),
+  h1: ({ children }: any) => <h1 className="text-sm font-bold text-slate-800 mt-2 mb-1">{children}</h1>,
+  h2: ({ children }: any) => <h2 className="text-xs font-bold text-slate-800 mt-2 mb-1">{children}</h2>,
+  h3: ({ children }: any) => <h3 className="text-xs font-bold text-slate-800 mt-1.5 mb-1">{children}</h3>,
+  ul: ({ children }: any) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+  ol: ({ children }: any) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+  li: ({ children }: any) => <li className="text-xs sm:text-sm text-slate-650">{children}</li>,
+  strong: ({ children }: any) => <strong className="font-bold text-slate-800">{children}</strong>,
+  em: ({ children }: any) => <em className="italic">{children}</em>,
+  code: ({ children }: any) => <code className="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono text-slate-700">{children}</code>,
+};
 
 interface ProfileEditFormProps {
   contributor: Contributor;
@@ -43,6 +68,8 @@ export default function ProfileEditForm({
   const [hidden, setHidden] = useState(contributor.hidden || false);
   const [shareEmail, setShareEmail] = useState<boolean>(contributor.shareEmail !== false);
   const [images, setImages] = useState<string[]>(contributor.images || []);
+  const [showBioPreview, setShowBioPreview] = useState(false);
+  const [showSlideNotesPreview, setShowSlideNotesPreview] = useState(false);
 
   const handleAddAdditionalLink = () => {
     if (!newLinkLabel.trim() || !newLinkUrl.trim()) return;
@@ -344,20 +371,20 @@ export default function ProfileEditForm({
   };
 
   return (
-    <div className="bg-white border border-slate-150 rounded-2xl p-6 shadow-sm max-w-2xl mx-auto">
+    <div className="bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-2xl p-6 shadow-sm max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-4 border-b border-slate-150 pb-4 mb-6">
+      <div className="flex items-center gap-4 border-b border-slate-150 dark:border-slate-800 pb-4 mb-6">
         <button
           onClick={onCancel}
-          className="p-2 hover:bg-slate-50 rounded-xl text-slate-500 hover:text-slate-900 transition"
+          className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div>
-          <h3 className="font-sans text-lg font-bold text-slate-900">
+          <h3 className="font-sans text-lg font-bold text-slate-900 dark:text-white">
             {isNew ? "Create Contributor Profile" : "Edit Contributor Profile"}
           </h3>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             {isNew ? "Submit your profile details to join our consultant registry." : "Update your details in the active directory."}
           </p>
         </div>
@@ -365,21 +392,21 @@ export default function ProfileEditForm({
 
       <form onSubmit={handleSave} className="space-y-5">
         {errorMessage && (
-          <div className="flex items-start gap-2.5 rounded-xl bg-red-50 p-3.5 text-xs text-red-700 border border-red-100">
+          <div className="flex items-start gap-2.5 rounded-xl bg-red-50 dark:bg-red-950/20 p-3.5 text-xs text-red-700 dark:text-red-350 border border-red-100 dark:border-red-900/40">
             <AlertTriangle className="h-4.5 w-4.5 shrink-0 text-red-500" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="flex items-start gap-2.5 rounded-xl bg-green-50 p-3.5 text-xs text-green-700 border border-green-100">
+          <div className="flex items-start gap-2.5 rounded-xl bg-green-50 dark:bg-green-950/20 p-3.5 text-xs text-green-700 dark:text-green-350 border border-green-100 dark:border-green-900/40">
             <CheckCircle className="h-4.5 w-4.5 shrink-0 text-green-550" />
             <span>{successMessage}</span>
           </div>
         )}
 
         {/* Profile Avatar Uploader Section */}
-        <div className="flex flex-col sm:flex-row items-center gap-5 p-4 bg-slate-50/50 border border-slate-150 rounded-2xl">
+        <div className="flex flex-col sm:flex-row items-center gap-5 p-4 bg-slate-50/50 dark:bg-slate-800/40 border border-slate-150 dark:border-slate-800 rounded-2xl">
           {/* Circular Frame for Preview */}
           <div className="relative group w-20 h-20 shrink-0">
             {avatarUrl ? (
@@ -387,10 +414,10 @@ export default function ProfileEditForm({
                 src={avatarUrl}
                 alt="Profile Avatar"
                 referrerPolicy="no-referrer"
-                className="w-full h-full rounded-2xl object-cover border border-slate-200"
+                className="w-full h-full rounded-2xl object-cover border border-slate-200 dark:border-slate-700"
               />
             ) : (
-              <div className={`w-full h-full rounded-2xl border border-slate-200 flex items-center justify-center font-sans font-extrabold text-lg ${activeTheme.primaryBgLight} ${activeTheme.primaryText}`}>
+              <div className={`w-full h-full rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center justify-center font-sans font-extrabold text-lg ${activeTheme.primaryBgLight} ${activeTheme.primaryText}`}>
                 {name ? name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() : "?"}
               </div>
             )}
@@ -400,7 +427,7 @@ export default function ProfileEditForm({
                 type="button"
                 onClick={() => setAvatarUrl("")}
                 title="Remove image"
-                className="absolute -top-1.5 -right-1.5 p-1 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-150 shadow-xs transition active:scale-95"
+                className="absolute -top-1.5 -right-1.5 p-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 hover:border-red-150 shadow-xs transition active:scale-95 cursor-pointer"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -409,7 +436,7 @@ export default function ProfileEditForm({
 
           {/* Action Zone / Drag-and-Drop Area */}
           <div className="flex-1 space-y-2 text-center sm:text-left w-full">
-            <label className="block text-xs font-bold text-slate-750">Profile Picture</label>
+            <label className="block text-xs font-bold text-slate-750 dark:text-slate-300">Profile Picture</label>
             
             <label
               htmlFor="avatar-upload-file-input"
@@ -427,7 +454,7 @@ export default function ProfileEditForm({
               className={`block border border-dashed rounded-xl p-4 text-center cursor-pointer transition ${
                 isDragging 
                   ? "border-blue-500 bg-blue-50/20" 
-                  : "border-slate-200 hover:border-slate-350 bg-white"
+                  : "border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-white dark:bg-slate-950"
               }`}
             >
               <input
@@ -441,18 +468,18 @@ export default function ProfileEditForm({
                 className="sr-only"
               />
               {isCompressing ? (
-                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-550 py-1.5">
+                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-555 py-1.5 dark:text-slate-400">
                   <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600"></div>
                   Optimizing image...
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center gap-1.5">
                   <Camera className="h-5 w-5 text-slate-400" />
-                  <p className="text-[11px] font-bold text-slate-650">
+                  <p className="text-[11px] font-bold text-slate-650 dark:text-slate-350">
                     Drag & drop, or <span className={`${activeTheme.primaryText} hover:underline`}>browse to upload</span>
                   </p>
-                  <p className="text-[9.5px] text-slate-400 font-medium">JPEG, PNG, or WebP. Compressed on-device.</p>
-                  <div className="mt-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold px-3 py-1 rounded-lg border border-slate-200 transition inline-block">
+                  <p className="text-[9.5px] text-slate-400 dark:text-slate-500 font-medium">JPEG, PNG, or WebP. Compressed on-device.</p>
+                  <div className="mt-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-bold px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 transition inline-block">
                     Choose Photo File
                   </div>
                 </div>
@@ -462,14 +489,14 @@ export default function ProfileEditForm({
             {/* Link option as alternative */}
             <div className="flex flex-wrap items-center gap-2 justify-between">
               <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-                <span className="text-[9px] text-slate-405 font-extrabold uppercase tracking-wider shrink-0">OR LINK DIRECT WEB URL</span>
-                <div className="h-px bg-slate-100 flex-1"></div>
+                <span className="text-[9px] text-slate-405 dark:text-slate-500 font-extrabold uppercase tracking-wider shrink-0">OR LINK DIRECT WEB URL</span>
+                <div className="h-px bg-slate-100 dark:bg-slate-800 flex-1"></div>
               </div>
               {auth.currentUser?.photoURL && avatarUrl !== auth.currentUser.photoURL && (
                 <button
                   type="button"
                   onClick={() => setAvatarUrl(auth.currentUser?.photoURL || "")}
-                  className={`text-[9px] font-bold ${activeTheme.primaryText} hover:underline cursor-pointer bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 transition whitespace-nowrap`}
+                  className={`text-[9px] font-bold ${activeTheme.primaryText} hover:underline cursor-pointer bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 transition whitespace-nowrap`}
                 >
                   Use Google Photo
                 </button>
@@ -480,7 +507,7 @@ export default function ProfileEditForm({
               placeholder="e.g., https://github.com/identicons/user.png"
               value={avatarUrl.startsWith("data:") ? "" : avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
-              className={`w-full rounded-xl border border-slate-200 px-3.5 py-1.5 text-xs outline-none transition focus:border-slate-400 focus:ring-1 ${activeTheme.primaryRing}`}
+              className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-1.5 text-xs outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-1 ${activeTheme.primaryRing}`}
             />
           </div>
         </div>
@@ -488,104 +515,178 @@ export default function ProfileEditForm({
         {/* Basic Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-705 mb-1">Display Name *</label>
+            <label className="block text-xs font-bold text-slate-705 dark:text-slate-300 mb-1">Display Name *</label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing}`}
+              className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing}`}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-705 mb-1">Job Title / Role *</label>
+            <label className="block text-xs font-bold text-slate-705 dark:text-slate-300 mb-1">Job Title / Role *</label>
             <input
               type="text"
               required
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing}`}
+              className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing}`}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-705 mb-1">Company / Organization</label>
+            <label className="block text-xs font-bold text-slate-705 dark:text-slate-300 mb-1">Company / Organization</label>
             <input
               type="text"
               value={company}
               placeholder="e.g. Google, independent"
               onChange={(e) => setCompany(e.target.value)}
-              className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing}`}
+              className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing}`}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-705 mb-1">Phone Number (Optional)</label>
+            <label className="block text-xs font-bold text-slate-705 dark:text-slate-300 mb-1">Phone Number (Optional)</label>
             <input
               type="tel"
               value={phone}
               placeholder="e.g. +1 (555) 019-2834"
               onChange={(e) => setPhone(e.target.value)}
-              className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing}`}
+              className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing}`}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-705 mb-1">Contact Email *</label>
+            <label className="block text-xs font-bold text-slate-705 dark:text-slate-300 mb-1">Contact Email *</label>
             <input
               type="email"
               required
               value={email}
               placeholder="e.g. name@domain.com"
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing}`}
+              className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing}`}
             />
           </div>
         </div>
 
         {/* Bio Text area */}
         <div>
-          <label className="block text-xs font-bold text-slate-705 mb-1">Biography / About Me</label>
-          <textarea
-            required
-            rows={5}
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing} resize-none leading-relaxed`}
-          />
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-2">
+              <label className="block text-xs font-bold text-slate-705 dark:text-slate-300">Biography / About Me *</label>
+              <span className="inline-flex items-center gap-1.5 text-[9px] text-slate-500 dark:text-slate-400 font-extrabold uppercase bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 px-1.5 py-0.5 rounded-md tracking-wider">
+                <svg className="h-3 w-3 text-slate-500 dark:text-slate-400" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M14.85 3H1.15C.52 3 0 3.52 0 4.15v7.7C0 12.48.52 13 1.15 13h13.7c.63 0 1.15-.52 1.15-1.15v-7.7C16 3.52 15.48 3 14.85 3zM9 11.5l-2-3H5v3H3.5v-7H5c1.1 0 2 .9 2 2l2-3h1.5v3h1l1-1h1v3h-1l-1-1h-1v3H9z"/>
+                </svg>
+                Markdown Supported
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowBioPreview(!showBioPreview)}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition cursor-pointer"
+            >
+              {showBioPreview ? (
+                <>
+                  <Edit3 className="h-3.5 w-3.5" />
+                  <span>Edit Mode</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="h-3.5 w-3.5" />
+                  <span>Live Preview</span>
+                </>
+              )}
+            </button>
+          </div>
+          {showBioPreview ? (
+            <div className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 p-4 min-h-[120px] text-sm text-slate-755 dark:text-slate-300 leading-relaxed font-sans overflow-y-auto markdown-body">
+              {bio.trim() ? (
+                <Markdown components={markdownComponents}>{sanitizeMarkdownLinks(bio)}</Markdown>
+              ) : (
+                <span className="italic text-slate-400 dark:text-slate-550 text-xs">Nothing to preview. Start typing your biography!</span>
+              )}
+            </div>
+          ) : (
+            <textarea
+              required
+              rows={5}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing} resize-none leading-relaxed`}
+            />
+          )}
         </div>
 
         {/* Slide Notes / Extra Context */}
         <div>
-          <label className="block text-xs font-bold text-slate-705 mb-1">Slide Context & Custom Notes</label>
-          <textarea
-            rows={3}
-            value={slideNotes}
-            placeholder="Extra text or background notes retrieved during slides extraction..."
-            onChange={(e) => setSlideNotes(e.target.value)}
-            className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing} resize-none leading-relaxed`}
-          />
-          <p className="text-[10px] text-slate-400 mt-1">Additional descriptive facts or contextual pointers extracted from the presenter slide.</p>
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-2">
+              <label className="block text-xs font-bold text-slate-705 dark:text-slate-300">Slide Context & Custom Notes</label>
+              <span className="inline-flex items-center gap-1.5 text-[9px] text-slate-500 dark:text-slate-400 font-extrabold uppercase bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-800 px-1.5 py-0.5 rounded-md tracking-wider">
+                <svg className="h-3 w-3 text-slate-500 dark:text-slate-400" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M14.85 3H1.15C.52 3 0 3.52 0 4.15v7.7C0 12.48.52 13 1.15 13h13.7c.63 0 1.15-.52 1.15-1.15v-7.7C16 3.52 15.48 3 14.85 3zM9 11.5l-2-3H5v3H3.5v-7H5c1.1 0 2 .9 2 2l2-3h1.5v3h1l1-1h1v3h-1l-1-1h-1v3H9z"/>
+                </svg>
+                Markdown Supported
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSlideNotesPreview(!showSlideNotesPreview)}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition cursor-pointer"
+            >
+              {showSlideNotesPreview ? (
+                <>
+                  <Edit3 className="h-3.5 w-3.5" />
+                  <span>Edit Mode</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="h-3.5 w-3.5" />
+                  <span>Live Preview</span>
+                </>
+              )}
+            </button>
+          </div>
+          {showSlideNotesPreview ? (
+            <div className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 p-4 min-h-[90px] text-xs text-slate-755 dark:text-slate-300 leading-relaxed font-sans overflow-y-auto markdown-body">
+              {slideNotes.trim() ? (
+                <Markdown components={markdownComponents}>{sanitizeMarkdownLinks(slideNotes)}</Markdown>
+              ) : (
+                <span className="italic text-slate-400 dark:text-slate-550 text-xs">Nothing to preview. Start typing slide notes!</span>
+              )}
+            </div>
+          ) : (
+            <textarea
+              rows={3}
+              value={slideNotes}
+              placeholder="Extra text or background notes retrieved during slides extraction..."
+              onChange={(e) => setSlideNotes(e.target.value)}
+              className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing} resize-none leading-relaxed`}
+            />
+          )}
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Additional descriptive facts or contextual pointers extracted from the presenter slide.</p>
         </div>
 
         {/* Skills Tag input */}
         <div>
-          <label className="block text-xs font-bold text-slate-705 mb-1">Skills (Comma-separated)</label>
+          <label className="block text-xs font-bold text-slate-705 dark:text-slate-300 mb-1">Skills (Comma-separated)</label>
           <input
             type="text"
             placeholder="React, CSS, Node.js, Project Management"
             value={skillsString}
             onChange={(e) => setSkillsString(e.target.value)}
-            className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing}`}
+            className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing}`}
           />
-          <p className="text-[10px] text-slate-400 mt-1">Provide individual skills separated by commas.</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Provide individual skills separated by commas.</p>
         </div>
 
         {/* Additional Slide Snapshots & Work Images Showcase */}
-        <div className="border border-slate-200 rounded-2xl p-4 sm:p-5 bg-white space-y-4">
+        <div className="border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 bg-white dark:bg-slate-950 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Additional Slide Snapshots & Photos</h4>
-              <p className="text-[10px] text-slate-400">Upload slides, credentials, portfolio items, or extra documents (up to 8 files).</p>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Additional Slide Snapshots & Photos</h4>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">Upload slides, credentials, portfolio items, or extra documents (up to 8 files).</p>
             </div>
-            <span className="text-xs font-bold text-slate-400 select-none bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 select-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-lg">
               {images.length}/8 slots
             </span>
           </div>
@@ -594,7 +695,7 @@ export default function ProfileEditForm({
           {images.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {images.map((imgSrc, idx) => (
-                <div key={idx} className="relative group rounded-xl border border-slate-150 overflow-hidden bg-slate-50 aspect-video select-none">
+                <div key={idx} className="relative group rounded-xl border border-slate-150 dark:border-slate-800 overflow-hidden bg-slate-50 dark:bg-slate-900 aspect-video select-none">
                   <img
                     src={imgSrc}
                     alt={`Showcase item ${idx + 1}`}
@@ -605,7 +706,7 @@ export default function ProfileEditForm({
                     <button
                       type="button"
                       onClick={() => removeAdditionalImage(idx)}
-                      className="p-1.5 rounded-full bg-white text-red-500 hover:scale-105 active:scale-95 shadow-md transition"
+                      className="p-1.5 rounded-full bg-white dark:bg-slate-800 text-red-500 hover:scale-105 active:scale-95 shadow-md transition cursor-pointer"
                       title="Delete snapshot"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -635,7 +736,7 @@ export default function ProfileEditForm({
               className={`block border border-dashed rounded-xl p-5 text-center cursor-pointer transition ${
                 isAdditionalDragging
                   ? "border-blue-500 bg-blue-50/20"
-                  : "border-slate-200 hover:border-slate-350 bg-slate-50/50"
+                  : "border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30"
               }`}
             >
               <input
@@ -649,18 +750,18 @@ export default function ProfileEditForm({
                 className="sr-only"
               />
               {isCompressingAdditional ? (
-                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-500 py-3">
+                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-500 py-3 dark:text-slate-400">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600"></div>
                   Optimizing showcase slide image...
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center gap-2 py-1">
                   <Upload className="h-5.5 w-5.5 text-slate-400" />
-                  <p className="text-[11px] font-bold text-slate-650">
+                  <p className="text-[11px] font-bold text-slate-650 dark:text-slate-350">
                     Drag & drop a slide photo, or <span className={`${activeTheme.primaryText} hover:underline`}>browse files</span>
                   </p>
-                  <p className="text-[9.5px] text-slate-400 font-medium">JPEG, PNG, WebP or SVG. Auto-rescaled & compressed on-device.</p>
-                  <div className={`mt-2 ${activeTheme.primaryBg} hover:opacity-90 text-white text-xs font-bold px-4 py-1.5 rounded-xl transition inline-block shadow-xs`}>
+                  <p className="text-[9.5px] text-slate-400 dark:text-slate-500 font-medium">JPEG, PNG, WebP or SVG. Auto-rescaled & compressed on-device.</p>
+                  <div className={`mt-2 ${activeTheme.primaryBg} hover:opacity-90 text-white text-xs font-bold px-4 py-1.5 rounded-xl transition inline-block shadow-xs cursor-pointer`}>
                     Choose Portfolio / Slide File ({images.length}/8)
                   </div>
                 </div>
@@ -670,20 +771,20 @@ export default function ProfileEditForm({
         </div>
 
         {/* Profile Visibility & Email Sharing Controls */}
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4 select-none">
+        <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
           {/* Row 1: Slide Directory Visibility */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
             <div className="space-y-1 max-w-md">
-              <label className="text-xs font-bold text-slate-705 flex items-center gap-1.5 font-sans uppercase tracking-wide">
-                <EyeOff className="h-4 w-4 text-slate-500" />
+              <label className="text-xs font-bold text-slate-705 dark:text-slate-300 flex items-center gap-1.5 font-sans uppercase tracking-wide">
+                <EyeOff className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                 Directory Visibility
               </label>
-              <p className="text-[10px] text-slate-500 leading-normal">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
                 Hide this profile card from the public contributor directory and slide viewer. Extremely useful for administrators who want backend panel privileges without having to maintain public cards.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-500">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
                 {hidden ? "Hidden from public" : "Visible in public view"}
               </span>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -693,7 +794,7 @@ export default function ProfileEditForm({
                   onChange={(e) => setHidden(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className={`w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-800`}></div>
+                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-800 dark:peer-checked:bg-amber-500"></div>
               </label>
             </div>
           </div>
@@ -701,16 +802,16 @@ export default function ProfileEditForm({
           {/* Row 2: Public Email Sharing */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1 max-w-md">
-              <label className="text-xs font-bold text-slate-705 flex items-center gap-1.5 font-sans uppercase tracking-wide">
-                <EyeOff className="h-4 w-4 text-slate-500" />
+              <label className="text-xs font-bold text-slate-705 dark:text-slate-300 flex items-center gap-1.5 font-sans uppercase tracking-wide">
+                <EyeOff className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                 Email Display Setting
               </label>
-              <p className="text-[10px] text-slate-500 leading-normal">
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
                 Control whether your email address is shared publicly on your profile card. If turned off, your email remains private and hidden from the public directory.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-500">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
                 {shareEmail ? "E-mail Publicly Shared" : "E-mail Hidden/Private"}
               </span>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -720,7 +821,7 @@ export default function ProfileEditForm({
                   onChange={(e) => setShareEmail(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className={`w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-800`}></div>
+                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-800 dark:peer-checked:bg-amber-500"></div>
               </label>
             </div>
           </div>
@@ -728,22 +829,22 @@ export default function ProfileEditForm({
 
         {/* Administrative settings for elevated users */}
         {isAdmin && (
-          <div className="bg-amber-50/50 border border-amber-200/50 rounded-2xl p-4 sm:p-5 space-y-3.5 select-none">
-            <h4 className="text-xs font-bold text-amber-800 flex items-center gap-1.5 font-sans uppercase tracking-wide">
+          <div className="bg-amber-50/50 dark:bg-amber-955/10 border border-amber-200/50 dark:border-amber-900/30 rounded-2xl p-4 sm:p-5 space-y-3.5">
+            <h4 className="text-xs font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 font-sans uppercase tracking-wide">
               <Shield className="h-4 w-4 text-amber-600" />
               Administrative Overrides
             </h4>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1 max-w-sm">
-                <label className="block text-xs font-bold text-slate-705">System Access Role</label>
-                <p className="text-[10px] text-slate-500 leading-normal">
+                <label className="block text-xs font-bold text-slate-705 dark:text-slate-300">System Access Role</label>
+                <p className="text-[10px] text-slate-500 dark:text-slate-450 leading-normal">
                   Elevate this contributor profile so they gain complete Admin Panel access when they sign in.
                 </p>
               </div>
               <select
                 value={systemRole}
                 onChange={(e) => setSystemRole(e.target.value as "contributor" | "admin")}
-                className="bg-white border border-slate-220 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold outline-none cursor-pointer focus:ring-2 focus:ring-amber-500/30"
+                className="bg-white dark:bg-slate-950 border border-slate-220 dark:border-slate-850 text-slate-800 dark:text-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold outline-none cursor-pointer focus:ring-2 focus:ring-amber-500/30"
               >
                 <option value="contributor">Contributor (Normal Card Owner)</option>
                 <option value="admin">Admin (Full Control Panel Access)</option>
@@ -753,72 +854,72 @@ export default function ProfileEditForm({
         )}
 
         {/* Social channels */}
-        <div className="border-t border-slate-100 pt-4">
-          <h4 className="font-sans text-xs font-bold text-slate-900 mb-3">Professional Social Profiles</h4>
+        <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+          <h4 className="font-sans text-xs font-bold text-slate-900 dark:text-white mb-3">Professional Social Profiles</h4>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">GitHub (URL or Username)</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">GitHub (URL or Username)</label>
               <input
                 type="text"
                 value={github}
                 placeholder="github.com/username"
                 onChange={(e) => setGithub(e.target.value)}
-                className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing} placeholder:text-slate-300`}
+                className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing} placeholder:text-slate-300 dark:placeholder:text-slate-650`}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">LinkedIn Profile Link</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">LinkedIn Profile Link</label>
               <input
                 type="text"
                 value={linkedin}
                 placeholder="linkedin.com/in/username"
                 onChange={(e) => setLinkedin(e.target.value)}
-                className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing} placeholder:text-slate-300`}
+                className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing} placeholder:text-slate-300 dark:placeholder:text-slate-650`}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Twitter / X URL</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Twitter / X URL</label>
               <input
                 type="text"
                 value={twitter}
                 placeholder="twitter.com/handle"
                 onChange={(e) => setTwitter(e.target.value)}
-                className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing} placeholder:text-slate-300`}
+                className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing} placeholder:text-slate-300 dark:placeholder:text-slate-650`}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Personal Website URL</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Personal Website URL</label>
               <input
                 type="text"
                 value={website}
                 placeholder="example.com"
                 onChange={(e) => setWebsite(e.target.value)}
-                className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing} placeholder:text-slate-300`}
+                className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing} placeholder:text-slate-300 dark:placeholder:text-slate-650`}
               />
             </div>
           </div>
 
           {/* Custom clickable links section */}
-          <div className="mt-5 bg-slate-50 border border-slate-150 rounded-2xl p-4">
-            <h5 className="font-sans text-xs font-bold text-slate-900 mb-2 flex items-center gap-1.5">
-              <Link2 className="h-3.5 w-3.5 text-slate-500" />
+          <div className="mt-5 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-800 rounded-2xl p-4">
+            <h5 className="font-sans text-xs font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-1.5">
+              <Link2 className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
               <span>Additional Clickable Links</span>
             </h5>
-            <p className="text-[11px] text-slate-500 mb-3">
+            <p className="text-[11px] text-slate-500 dark:text-slate-450 mb-3">
               Add custom resources such as your blog, company portfolio, Medium article, YouTube presentation, or other professional profiles.
             </p>
 
             {additionalLinks.length > 0 && (
               <div className="space-y-2 mb-4">
                 {additionalLinks.map((link, idx) => (
-                  <div key={idx} className="flex items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                  <div key={idx} className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs">
                     <div className="flex items-center gap-2 overflow-hidden">
-                      <span className="font-bold text-slate-700 truncate max-w-[120px]">{link.label}</span>
-                      <span className="text-slate-300">|</span>
+                      <span className="font-bold text-slate-700 dark:text-slate-300 truncate max-w-[120px]">{link.label}</span>
+                      <span className="text-slate-305 dark:text-slate-700">|</span>
                       <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline truncate max-w-[180px] sm:max-w-[280px]">
                         {link.url}
                       </a>
@@ -826,7 +927,7 @@ export default function ProfileEditForm({
                     <button
                       type="button"
                       onClick={() => handleRemoveAdditionalLink(idx)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 transition rounded-lg hover:bg-slate-50 cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
                       title="Remove link"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -842,19 +943,19 @@ export default function ProfileEditForm({
                 placeholder="Label (e.g., Blog, Portfolio, Medium)"
                 value={newLinkLabel}
                 onChange={(e) => setNewLinkLabel(e.target.value)}
-                className="flex-1 rounded-xl border border-slate-200 px-3.5 py-2 text-xs outline-none bg-white"
+                className="flex-1 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2 text-xs outline-none bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
               />
               <input
                 type="text"
                 placeholder="URL (e.g., medium.com/@user)"
                 value={newLinkUrl}
                 onChange={(e) => setNewLinkUrl(e.target.value)}
-                className="flex-[2] rounded-xl border border-slate-200 px-3.5 py-2 text-xs outline-none bg-white"
+                className="flex-[2] rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2 text-xs outline-none bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
               />
               <button
                 type="button"
                 onClick={handleAddAdditionalLink}
-                className={`flex items-center justify-center gap-1 px-4 py-2 text-xs font-bold text-white rounded-xl active:scale-98 transition ${activeTheme.primaryBg} ${activeTheme.primaryHoverBg}`}
+                className={`flex items-center justify-center gap-1 px-4 py-2 text-xs font-bold text-white rounded-xl active:scale-98 transition cursor-pointer ${activeTheme.primaryBg} ${activeTheme.primaryHoverBg}`}
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Add</span>
@@ -864,18 +965,18 @@ export default function ProfileEditForm({
         </div>
 
         {/* CTAs */}
-        <div className="flex justify-end gap-3 border-t border-slate-100 pt-5 mt-6">
+        <div className="flex justify-end gap-3 border-t border-slate-100 dark:border-slate-800 pt-5 mt-6">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-slate-150 px-4 py-2.5 text-sm font-semibold text-slate-550 hover:bg-slate-50 transition"
+            className="rounded-xl border border-slate-150 dark:border-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-550 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-850 transition cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSaving}
-            className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-md active:scale-98 transition disabled:opacity-50 ${activeTheme.primaryBg} ${activeTheme.primaryHoverBg} ${activeTheme.shadowAccent}`}
+            className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-md active:scale-98 transition disabled:opacity-50 cursor-pointer ${activeTheme.primaryBg} ${activeTheme.primaryHoverBg} ${activeTheme.shadowAccent}`}
           >
             {isSaving ? (
               <>

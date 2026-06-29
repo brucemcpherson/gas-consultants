@@ -1,6 +1,6 @@
 import React from "react";
 import { User } from "firebase/auth";
-import { LogOut, Shield, BookOpen, UserCheck, Palette, Inbox } from "lucide-react";
+import { LogOut, Shield, BookOpen, UserCheck, Palette, Inbox, Sun, Moon } from "lucide-react";
 import { googleSignIn, logout, isUserAdmin } from "../firebase";
 import { ThemeColors, ThemeType } from "../lib/theme";
 import { Contributor } from "../types";
@@ -18,6 +18,8 @@ interface AppBarProps {
   adminBadgeCount?: number;
   inboxUnreadCount?: number;
   onOpenInbox: () => void;
+  isDarkMode: boolean;
+  onToggleDarkMode: () => void;
 }
 
 export default function AppBar({
@@ -33,6 +35,8 @@ export default function AppBar({
   adminBadgeCount = 0,
   inboxUnreadCount = 0,
   onOpenInbox,
+  isDarkMode,
+  onToggleDarkMode,
 }: AppBarProps) {
   
   const handleLogin = async () => {
@@ -59,7 +63,7 @@ export default function AppBar({
   const isAdmin = isUserAdmin(user, contributors);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 shadow-sm transition-colors duration-200">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab("directory")}>
@@ -67,26 +71,26 @@ export default function AppBar({
             <BookOpen className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="font-sans text-base sm:text-lg font-bold tracking-tight text-slate-900 leading-tight">
+            <h1 className="font-sans text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
               Consultant Directory
             </h1>
             <div className="flex items-center gap-1.5 mt-0.5">
               <svg className="h-3.5 w-3.5 text-amber-500 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M18.89 9.38l-1.67-6.52c-.09-.37-.41-.64-.8-.66-.38-.02-.74.19-.89.54L12.44 9.9 8.35 2.14C8.17 1.8 7.82 1.58 7.43 1.6s-.73.25-.87.61L2.24 16.58l9.08 5.1c.42.24.94.24 1.37 0l9.08-5.1-2.88-7.2z" />
               </svg>
-              <span className="font-mono text-[10px] text-slate-400 leading-none">Powered by Firestore</span>
+              <span className="font-mono text-[10px] text-slate-400 dark:text-slate-500 leading-none">Powered by Firestore</span>
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <nav className="hidden md:flex space-x-1 bg-slate-50 p-1.5 rounded-xl border border-slate-150">
+        <nav className="hidden md:flex space-x-1 bg-slate-50 dark:bg-slate-800/85 p-1.5 rounded-xl border border-slate-150 dark:border-slate-700 transition-colors">
           <button
             onClick={() => setActiveTab("directory")}
             className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
               activeTab === "directory"
-                ? `bg-white shadow-xs ${activeTheme.primaryText}`
-                : "text-slate-550 hover:text-slate-900"
+                ? `bg-white dark:bg-slate-900 shadow-xs ${activeTheme.primaryText}`
+                : "text-slate-550 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             Directory
@@ -97,8 +101,8 @@ export default function AppBar({
               onClick={onOpenInbox}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer ${
                 activeTab === "inbox"
-                  ? `bg-white shadow-xs ${activeTheme.primaryText}`
-                  : "text-slate-550 hover:text-slate-900"
+                  ? `bg-white dark:bg-slate-900 shadow-xs ${activeTheme.primaryText}`
+                  : "text-slate-550 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               <Inbox className="h-4 w-4" />
@@ -116,8 +120,8 @@ export default function AppBar({
               onClick={() => setActiveTab("admin")}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 activeTab === "admin"
-                  ? `bg-white shadow-xs ${activeTheme.primaryText}`
-                  : "text-slate-550 hover:text-slate-900"
+                  ? `bg-white dark:bg-slate-900 shadow-xs ${activeTheme.primaryText}`
+                  : "text-slate-550 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               <Shield className="h-4 w-4" />
@@ -135,8 +139,8 @@ export default function AppBar({
         <div className="flex items-center gap-3">
           
           {/* Aesthetic Palette Swapper */}
-          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-slate-50 border border-slate-100 rounded-xl select-none scale-90 sm:scale-100">
-            <Palette className="h-3.5 w-3.5 text-slate-400" />
+          <div className="flex items-center gap-1.5 px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl select-none scale-90 sm:scale-100 transition-colors">
+            <Palette className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
             <div className="flex items-center gap-1">
               <button 
                 onClick={() => onThemeChange("orange")} 
@@ -166,14 +170,23 @@ export default function AppBar({
             </div>
           </div>
 
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={onToggleDarkMode}
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            className="p-2 text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all scale-90 sm:scale-100 cursor-pointer"
+          >
+            {isDarkMode ? <Sun className="h-4.5 w-4.5 text-amber-500" /> : <Moon className="h-4.5 w-4.5 text-slate-550 dark:text-slate-400" />}
+          </button>
+
           {isLoading ? (
-            <div className={`h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-current ${activeTheme.primaryText}`}></div>
+            <div className={`h-8 w-8 animate-spin rounded-full border-2 border-slate-200 dark:border-slate-700 border-t-current ${activeTheme.primaryText}`}></div>
           ) : user ? (
             <div className="flex items-center gap-3">
               {/* Profile Shortcut */}
               <button
                 onClick={onOpenMyProfile}
-                className={`hidden sm:flex items-center gap-2 cursor-pointer group bg-slate-50 hover:${activeTheme.primaryBgLight} border border-slate-100 p-1.5 pr-3 rounded-full transition-all`}
+                className={`hidden sm:flex items-center gap-2 cursor-pointer group bg-slate-50 dark:bg-slate-800 hover:${activeTheme.primaryBgLight} dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700 p-1.5 pr-3 rounded-full transition-all`}
               >
                 {user.photoURL ? (
                   <img
@@ -183,11 +196,11 @@ export default function AppBar({
                     className="h-7 w-7 rounded-full object-cover"
                   />
                 ) : (
-                  <div className={`h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs uppercase border ${activeTheme.primaryBgLight} ${activeTheme.primaryText} ${activeTheme.primaryBorderLight}`}>
+                  <div className={`h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs uppercase border ${activeTheme.primaryBgLight} ${activeTheme.primaryText} ${activeTheme.primaryBorderLight} dark:border-slate-650`}>
                     {(user.email || "C")[0]}
                   </div>
                 )}
-                <span className={`text-xs font-semibold text-slate-705 group-hover:${activeTheme.primaryText} truncate max-w-[100px]`}>
+                <span className={`text-xs font-semibold text-slate-750 dark:text-slate-200 group-hover:${activeTheme.primaryText} truncate max-w-[100px]`}>
                   {user.displayName || "Contributor"}
                 </span>
               </button>
@@ -196,7 +209,7 @@ export default function AppBar({
               <button
                 onClick={handleLogout}
                 title="Log Out"
-                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-55 rounded-xl transition-all"
+                className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition-all cursor-pointer"
               >
                 <LogOut className="h-5 w-5" />
               </button>
@@ -205,7 +218,7 @@ export default function AppBar({
             /* Custom Styled Official Google sign in button conforming to GSI requirements */
             <button
               onClick={handleLogin}
-              className={`flex items-center gap-2.5 bg-white border border-slate-200 px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${activeTheme.primaryRing}`}
+              className={`flex items-center gap-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${activeTheme.primaryRing} cursor-pointer`}
             >
               <svg className="h-4 w-4" viewBox="0 0 48 48" style={{ display: "block" }}>
                 <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
@@ -220,12 +233,12 @@ export default function AppBar({
       </div>
 
       {/* Mobile Sub-Navigation Header */}
-      <div className="flex md:hidden bg-slate-50 border-t border-slate-100 overflow-x-auto select-none">
+      <div className="flex md:hidden bg-slate-50 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-800 overflow-x-auto select-none transition-colors">
         <div className="flex px-4 py-2 space-x-2">
           <button
             onClick={() => setActiveTab("directory")}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
-              activeTab === "directory" ? `${activeTheme.primaryBg} text-white shadow-xs` : "bg-white text-slate-650 border border-slate-150"
+              activeTab === "directory" ? `${activeTheme.primaryBg} text-white shadow-xs` : "bg-white dark:bg-slate-900 text-slate-650 dark:text-slate-300 border border-slate-150 dark:border-slate-700"
             }`}
           >
             Directory
@@ -234,7 +247,7 @@ export default function AppBar({
             <button
               onClick={onOpenInbox}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
-                activeTab === "inbox" ? `${activeTheme.primaryBg} text-white shadow-xs` : "bg-white text-slate-650 border border-slate-150"
+                activeTab === "inbox" ? `${activeTheme.primaryBg} text-white shadow-xs` : "bg-white dark:bg-slate-900 text-slate-650 dark:text-slate-300 border border-slate-150 dark:border-slate-700"
               }`}
             >
               <Inbox className="h-3 w-3" />
@@ -250,7 +263,7 @@ export default function AppBar({
             <button
               onClick={() => setActiveTab("admin")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
-                activeTab === "admin" ? `${activeTheme.primaryBg} text-white shadow-xs` : "bg-white text-slate-650 border border-slate-150"
+                activeTab === "admin" ? `${activeTheme.primaryBg} text-white shadow-xs` : "bg-white dark:bg-slate-900 text-slate-650 dark:text-slate-300 border border-slate-150 dark:border-slate-700"
               }`}
             >
               <Shield className="h-3 w-3" />

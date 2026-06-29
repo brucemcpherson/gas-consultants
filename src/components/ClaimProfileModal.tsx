@@ -109,24 +109,24 @@ export default function ClaimProfileModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl z-10"
+          className="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-905 p-6 shadow-2xl z-10"
         >
           {/* Close trigger */}
           <button
             onClick={handleCloseReset}
-            className="absolute right-4 top-4 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="absolute right-4 top-4 rounded-full p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
 
           {/* Heading */}
           <div className="mb-5 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
               <Shield className="h-5.5 w-5.5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-800">Claim Profile</h3>
-              <p className="text-xs text-slate-500">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Claim Profile</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 Identify and verify ownership of <b>{contributor.name}</b>
               </p>
             </div>
@@ -135,38 +135,38 @@ export default function ClaimProfileModal({
           {/* Steps */}
           {step === "init" && (
             <form onSubmit={handleClaimProfile} className="space-y-4">
-              <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-xs text-slate-700 leading-relaxed">
-                <p className="font-semibold text-blue-800 mb-1">Direct Profile Linking</p>
+              <div className="rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/20 p-4 text-xs text-slate-700 dark:text-slate-350 leading-relaxed">
+                <p className="font-semibold text-blue-800 dark:text-blue-400 mb-1">Direct Profile Linking</p>
                 You are claiming this unclaimed contributor profile. Since you are securely signed in with Google, you can instantly link this card to your account and manage it.
               </div>
 
               {/* Contact Email setting */}
               <div className="space-y-3">
-                <label className="block text-xs font-bold text-slate-700">Set Profile Contact Email</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Set Profile Contact Email</label>
                 
                 <div className="space-y-2">
-                  <label className="flex items-start gap-2.5 rounded-xl border border-slate-100 bg-slate-50/50 p-3 text-xs cursor-pointer hover:bg-slate-50 transition">
+                  <label className="flex items-start gap-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20 p-3 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                     <input
                       type="radio"
                       checked={useAccountEmail}
                       onChange={() => setUseAccountEmail(true)}
-                      className="mt-0.5"
+                      className="mt-0.5 cursor-pointer"
                     />
                     <div>
-                      <span className="font-semibold text-slate-700">Use my Google Account email</span>
-                      <p className="text-slate-500 mt-0.5 font-mono text-[11px]">{currentUser.email}</p>
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">Use my Google Account email</span>
+                      <p className="text-slate-500 dark:text-slate-450 mt-0.5 font-mono text-[11px]">{currentUser.email}</p>
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-2.5 rounded-xl border border-slate-100 bg-slate-50/50 p-3 text-xs cursor-pointer hover:bg-slate-50 transition">
+                  <label className="flex items-start gap-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20 p-3 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                     <input
                       type="radio"
                       checked={!useAccountEmail}
                       onChange={() => setUseAccountEmail(false)}
-                      className="mt-0.5"
+                      className="mt-0.5 cursor-pointer"
                     />
                     <div className="flex-1">
-                      <span className="font-semibold text-slate-700">Use a different contact email</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">Use a different contact email</span>
                       {!useAccountEmail && (
                         <div className="mt-2 relative">
                           <Mail className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
@@ -176,7 +176,7 @@ export default function ClaimProfileModal({
                             placeholder="e.g. name@domain.com"
                             value={customEmail}
                             onChange={(e) => setCustomEmail(e.target.value)}
-                            className="w-full rounded-lg border border-slate-200 pl-9 pr-3 py-1.5 text-xs outline-none focus:border-slate-400 focus:ring-1 focus:ring-blue-100 font-sans"
+                            className="w-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-lg border border-slate-200 dark:border-slate-800 pl-9 pr-3 py-1.5 text-xs outline-none focus:border-slate-400 focus:ring-1 focus:ring-blue-100 font-sans"
                           />
                         </div>
                       )}
@@ -186,8 +186,8 @@ export default function ClaimProfileModal({
               </div>
 
               {error && (
-                <div className="flex gap-2 rounded-xl border border-red-100 bg-red-50 p-3.5 text-xs font-semibold text-red-600 leading-relaxed">
-                  <AlertCircle className="h-4.5 w-4.5 shrink-0" />
+                <div className="flex gap-2 rounded-xl border border-red-100 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20 p-3.5 text-xs font-semibold text-red-600 dark:text-red-400 leading-relaxed">
+                  <AlertCircle className="h-4.5 w-4.5 shrink-0 text-red-500" />
                   <span>{error}</span>
                 </div>
               )}
@@ -195,10 +195,10 @@ export default function ClaimProfileModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 transition-colors cursor-pointer font-sans"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 px-4 py-3 text-sm font-semibold text-white shadow-md transition-colors cursor-pointer font-sans"
               >
                 {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin text-white" />
                 ) : (
                   <>
                     <Lock className="h-4 w-4" />
@@ -211,12 +211,12 @@ export default function ClaimProfileModal({
 
           {step === "success" && (
             <div className="space-y-4 text-center py-4">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-950/40 text-green-600 dark:text-green-400">
                 <CheckCircle className="h-8 w-8" />
               </div>
               <div>
-                <h4 className="text-lg font-bold text-slate-800">Profile Claimed!</h4>
-                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
+                <h4 className="text-lg font-bold text-slate-800 dark:text-white">Profile Claimed!</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
                   Excellent! The profile of <b>{contributor.name}</b> has been successfully associated with your account, and your contact email is updated to <b className="font-mono">{targetEmail}</b>. You can now update your details and manage your profile card directly.
                 </p>
               </div>
@@ -227,7 +227,7 @@ export default function ClaimProfileModal({
                   onSuccess();
                   handleCloseReset();
                 }}
-                className="mt-2 w-full rounded-xl bg-slate-900 text-white font-semibold py-2.5 text-sm hover:bg-slate-800 active:bg-slate-950 transition-colors cursor-pointer"
+                className="mt-2 w-full rounded-xl bg-slate-900 dark:bg-slate-800 text-white font-semibold py-2.5 text-sm hover:bg-slate-800 dark:hover:bg-slate-700 active:bg-slate-950 transition-colors cursor-pointer"
               >
                 Done
               </button>

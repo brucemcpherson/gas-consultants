@@ -72,17 +72,17 @@ export default function ContactModal({ contributor, currentUser, onClose }: Cont
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4 backdrop-blur-xs">
-      <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl transition-all duration-300">
+      <div className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-slate-905 p-6 border border-slate-100 dark:border-slate-800 shadow-2xl transition-all duration-300">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
           <div>
-            <h3 className="font-sans text-lg font-bold text-slate-900">Contact Contributor</h3>
-            <p className="text-xs text-slate-500">Sending message to <span className="font-semibold text-blue-650">{contributor.name}</span></p>
+            <h3 className="font-sans text-lg font-bold text-slate-900 dark:text-white">Contact Contributor</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Sending message to <span className="font-semibold text-blue-650 dark:text-blue-400">{contributor.name}</span></p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -91,16 +91,16 @@ export default function ContactModal({ contributor, currentUser, onClose }: Cont
         {/* Content */}
         {isSuccess ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-50 text-green-500 shadow-inner mb-4 animate-bounce">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-50 dark:bg-green-950/40 text-green-500 shadow-inner mb-4 animate-bounce">
               <CheckCircle2 className="h-8 w-8" />
             </div>
-            <h4 className="font-sans text-base font-bold text-slate-900">Message Sent!</h4>
-            <p className="mt-2 text-sm text-slate-500 max-w-xs">
+            <h4 className="font-sans text-base font-bold text-slate-900 dark:text-white">Message Sent!</h4>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-450 max-w-xs">
               Your message was sent successfully to {contributor.name}. They will receive it in their dashboard inbox.
             </p>
             <button
               onClick={onClose}
-              className="mt-6 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-slate-800 transition"
+              className="mt-6 w-full rounded-xl bg-slate-900 dark:bg-slate-800 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-slate-800 dark:hover:bg-slate-705 transition cursor-pointer"
             >
               Continue Browsing
             </button>
@@ -109,7 +109,7 @@ export default function ContactModal({ contributor, currentUser, onClose }: Cont
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             
             {errorMessage && (
-              <div className="flex items-start gap-2.5 rounded-xl bg-red-50 p-3 text-xs text-red-700 border border-red-100">
+              <div className="flex items-start gap-2.5 rounded-xl bg-red-50 dark:bg-red-950/20 p-3 text-xs text-red-700 dark:text-red-450 border border-red-100 dark:border-red-900/40">
                 <AlertTriangle className="h-4.5 w-4.5 shrink-0 text-red-500" />
                 <span>{errorMessage}</span>
               </div>
@@ -117,20 +117,20 @@ export default function ContactModal({ contributor, currentUser, onClose }: Cont
 
             {/* Sender Name */}
             <div>
-              <label className="block text-xs font-semibold text-slate-705 mb-1">Your Full Name</label>
+              <label className="block text-xs font-semibold text-slate-705 dark:text-slate-300 mb-1">Your Full Name</label>
               <input
                 type="text"
                 required
                 placeholder="Jane Doe"
                 value={senderName}
                 onChange={(e) => setSenderName(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300"
+                className="w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-blue-500 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 dark:placeholder:text-slate-650"
               />
             </div>
 
             {/* Sender Email */}
             <div>
-              <label className="block text-xs font-semibold text-slate-705 mb-1">Your Email Address</label>
+              <label className="block text-xs font-semibold text-slate-705 dark:text-slate-300 mb-1">Your Email Address</label>
               <input
                 type="email"
                 required
@@ -138,33 +138,33 @@ export default function ContactModal({ contributor, currentUser, onClose }: Cont
                 placeholder="jane@organization.org"
                 value={senderEmail}
                 onChange={(e) => setSenderEmail(e.target.value)}
-                className={`w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 ${currentUser?.email ? "bg-slate-50 text-slate-500 cursor-not-allowed" : ""}`}
+                className={`w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-blue-500 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 dark:placeholder:text-slate-650 ${currentUser?.email ? "bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-450 cursor-not-allowed" : ""}`}
               />
             </div>
 
             {/* Message Subject */}
             <div>
-              <label className="block text-xs font-semibold text-slate-705 mb-1">Subject</label>
+              <label className="block text-xs font-semibold text-slate-705 dark:text-slate-300 mb-1">Subject</label>
               <input
                 type="text"
                 required
                 placeholder="Collaboration opportunity / Feedback"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300"
+                className="w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-blue-500 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 dark:placeholder:text-slate-650"
               />
             </div>
 
             {/* Message Text area */}
             <div>
-              <label className="block text-xs font-semibold text-slate-705 mb-1">Your Message</label>
+              <label className="block text-xs font-semibold text-slate-705 dark:text-slate-300 mb-1">Your Message</label>
               <textarea
                 required
                 rows={4}
                 placeholder="Explain the background and context of your inquiry..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 resize-none"
+                className="w-full bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 py-2.5 text-sm outline-none transition focus:border-blue-500 dark:focus:border-blue-700 focus:ring-2 focus:ring-blue-100 placeholder:text-slate-300 dark:placeholder:text-slate-650 resize-none"
               />
             </div>
 
@@ -173,14 +173,14 @@ export default function ContactModal({ contributor, currentUser, onClose }: Cont
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition cursor-pointer"
+                className="rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-550 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-850 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSending}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-100 hover:bg-blue-700 active:scale-98 transition disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700 active:scale-98 transition disabled:opacity-50 cursor-pointer"
                 title="Saves this message to their Inbox and opens your email application to send directly"
               >
                 {isSending ? (

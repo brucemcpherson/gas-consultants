@@ -61,6 +61,27 @@ export default function App() {
     localStorage.setItem("app_script_consultants_theme", key);
   };
 
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem("app_script_consultants_dark_mode");
+    if (saved !== null) {
+      return saved === "true";
+    }
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("app_script_consultants_dark_mode", String(isDarkMode));
+  }, [isDarkMode]);
+
+  const handleToggleDarkMode = () => {
+    setIsDarkMode((prev) => !prev);
+  };
+
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSkillFilter, setSelectedSkillFilter] = useState<string | null>(null);
@@ -614,7 +635,7 @@ export default function App() {
   const displayedQuickSkills = showAllQuickSkills ? allSkills : allSkills.slice(0, QUICK_SKILLS_LIMIT);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col text-slate-800 antialiased selection:bg-slate-100 selection:text-slate-900">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-200 dark:selection:bg-blue-900 selection:text-slate-900 dark:selection:text-white transition-colors duration-200">
       
       {/* Top Bar AppBar */}
       <AppBar
@@ -633,6 +654,8 @@ export default function App() {
         adminBadgeCount={adminBadgeCount}
         inboxUnreadCount={myUnreadCount}
         onOpenInbox={() => setMyInboxActive(true)}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={handleToggleDarkMode}
       />
 
       {/* Main Container */}
@@ -668,16 +691,16 @@ export default function App() {
               <div className="space-y-6">
                 
                 {/* Banner / Guide */}
-                <div className="bg-white border border-slate-150 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
+                <div className="bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
                   <div className="flex-1 space-y-3">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${activeTheme.primaryBgLight} ${activeTheme.primaryText} border ${activeTheme.primaryBorderLight}`}>
                       <Sparkles className={`h-3.5 w-3.5 ${activeTheme.primaryText}`} />
                       Active Community Ledger
                     </span>
-                    <h2 className="font-sans text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight">
+                    <h2 className="font-sans text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
                       Find, Connect, and Support Apps Script Consultants.
                     </h2>
-                    <p className="text-slate-500 text-sm sm:text-base max-w-2xl leading-relaxed">
+                    <p className="text-slate-500 dark:text-slate-450 text-sm sm:text-base max-w-2xl leading-relaxed">
                       A visual directory derived from our live Google Slides index. Contributors can claim cards to update progress, and visitors can contact them directly. Found an error or have guidelines feedback?{" "}
                       <button 
                         onClick={() => setContactAdminOpen(true)}
@@ -689,13 +712,13 @@ export default function App() {
                   </div>
                   
                   {/* Quick details */}
-                  <div className="flex flex-row md:flex-col gap-4 items-center sm:items-start p-4 bg-slate-50/50 rounded-2xl border border-slate-150 divide-x md:divide-x-0 md:divide-y divide-slate-200 shrink-0">
+                  <div className="flex flex-row md:flex-col gap-4 items-center sm:items-start p-4 bg-slate-50/50 dark:bg-slate-800/40 rounded-2xl border border-slate-150 dark:border-slate-800 divide-x md:divide-x-0 md:divide-y divide-slate-200 dark:divide-slate-700 shrink-0">
                     <div className="px-3 md:px-0 md:pb-2.5">
-                      <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Approved Profiles</p>
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">Approved Profiles</p>
                       <p className={`text-2xl font-black ${activeTheme.primaryText} mt-0.5`}>{approvedList.length}</p>
                     </div>
                     <div className="pl-4 md:pl-0 md:pt-2.5 pr-2">
-                      <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Total Skills Registered</p>
+                      <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">Total Skills Registered</p>
                       <p className={`text-2xl font-black ${activeTheme.primaryText} mt-0.5`}>{allSkills.length}</p>
                     </div>
                   </div>
@@ -712,7 +735,7 @@ export default function App() {
                         placeholder="Search name, job title, skills..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className={`w-full bg-white border border-slate-200 pl-11 pr-4 py-3 rounded-2xl text-sm outline-none transition focus:border-slate-400 focus:ring-2 ${activeTheme.primaryRing} placeholder:text-slate-400 shadow-xs`}
+                        className={`w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-850 dark:text-slate-100 pl-11 pr-4 py-3 rounded-2xl text-sm outline-none transition focus:border-slate-400 dark:focus:border-slate-700 focus:ring-2 ${activeTheme.primaryRing} placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-xs`}
                       />
                     </div>
                     {user && (
@@ -738,7 +761,7 @@ export default function App() {
                         className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
                           selectedSkillFilter === null
                             ? `${activeTheme.primaryBg} text-white shadow-xs`
-                            : "bg-white text-slate-650 border border-slate-200 hover:bg-slate-50"
+                            : "bg-white dark:bg-slate-900 text-slate-650 dark:text-slate-350 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
                         }`}
                       >
                         All
@@ -750,7 +773,7 @@ export default function App() {
                           className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
                             selectedSkillFilter === skill
                               ? `${activeTheme.primaryBg} text-white shadow-xs`
-                              : "bg-white text-slate-650 border border-slate-200 hover:bg-slate-50"
+                              : "bg-white dark:bg-slate-900 text-slate-650 dark:text-slate-350 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
                           }`}
                         >
                           {skill}
@@ -759,10 +782,10 @@ export default function App() {
                       {hasMoreQuickSkills && (
                         <button
                           onClick={() => setShowAllQuickSkills(!showAllQuickSkills)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition border border-slate-200 cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition border border-slate-200 dark:border-slate-800 cursor-pointer ${
                             showAllQuickSkills
-                              ? "bg-slate-100 text-slate-800"
-                              : `${activeTheme.primaryText} bg-white hover:${activeTheme.primaryBgLight} hover:${activeTheme.primaryBorderLight}`
+                              ? "bg-slate-100 dark:bg-slate-800 text-slate-850 dark:text-slate-200"
+                              : `${activeTheme.primaryText} bg-white dark:bg-slate-900 hover:${activeTheme.primaryBgLight} hover:${activeTheme.primaryBorderLight}`
                           }`}
                         >
                           {showAllQuickSkills ? "Show less" : `...+${allSkills.length - QUICK_SKILLS_LIMIT} more`}
@@ -776,16 +799,16 @@ export default function App() {
                 {isDataLoading ? (
                   <div className="flex flex-col items-center justify-center py-24 gap-3">
                     <div className={`h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-current ${activeTheme.primaryText}`}></div>
-                    <span className="text-sm font-semibold text-slate-500">Retrieving contributor directory...</span>
+                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Retrieving contributor directory...</span>
                   </div>
                 ) : contributors.length === 0 ? (
-                  <div className="bg-white border border-slate-150 rounded-3xl py-16 sm:py-24 text-center px-4 max-w-xl mx-auto space-y-4">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-3xl py-16 sm:py-24 text-center px-4 max-w-xl mx-auto space-y-4">
                     <div className={`h-14 w-14 rounded-full flex items-center justify-center mx-auto ${activeTheme.primaryBgLight} ${activeTheme.primaryText}`}>
                       <Info className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="font-sans text-lg font-bold text-slate-900">Database Directory is Empty</h3>
-                      <p className="text-sm text-slate-500 mt-1">
+                      <h3 className="font-sans text-lg font-bold text-slate-900 dark:text-white">Database Directory is Empty</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                         There are currently no active profiles. You can run the slide importer CLI tool, or seed sample sandbox profiles below.
                       </p>
                     </div>
@@ -801,12 +824,12 @@ export default function App() {
                     )}
                   </div>
                 ) : filteredContributors.length === 0 ? (
-                  <div className="bg-white border border-slate-150 rounded-3xl py-24 text-center px-4">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-3xl py-24 text-center px-4">
                     <div className={`h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-4 ${activeTheme.primaryBgLight} ${activeTheme.primaryText}`}>
                       <Info className="h-6 w-6" />
                     </div>
-                    <h3 className="font-sans text-lg font-bold text-slate-900">No Contributors Found</h3>
-                    <p className="text-sm text-slate-400 mt-1 max-w-md mx-auto">
+                    <h3 className="font-sans text-lg font-bold text-slate-900 dark:text-white">No Contributors Found</h3>
+                    <p className="text-sm text-slate-400 dark:text-slate-450 mt-1 max-w-md mx-auto">
                       No cards match your query. Try clearing filters or refining search terms.
                     </p>
                   </div>

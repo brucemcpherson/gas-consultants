@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useRef } from "react";
+import Markdown from "react-markdown";
+import { sanitizeMarkdownLinks } from "../lib/markdown";
 import { 
   Github, 
   Linkedin, 
@@ -27,6 +29,29 @@ import {
 } from "lucide-react";
 import { Contributor } from "../types";
 import { ThemeColors } from "../lib/theme";
+
+const markdownComponents = {
+  p: ({ children }: any) => <p className="mb-1.5 last:mb-0 leading-relaxed">{children}</p>,
+  a: ({ href, children }: any) => (
+    <a 
+      href={href} 
+      target="_blank" 
+      rel="noopener noreferrer" 
+      className="text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+    >
+      {children}
+    </a>
+  ),
+  h1: ({ children }: any) => <h1 className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-2 mb-1">{children}</h1>,
+  h2: ({ children }: any) => <h2 className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-2 mb-1">{children}</h2>,
+  h3: ({ children }: any) => <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1.5 mb-1">{children}</h3>,
+  ul: ({ children }: any) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+  ol: ({ children }: any) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+  li: ({ children }: any) => <li className="text-xs sm:text-sm text-slate-600 dark:text-slate-350">{children}</li>,
+  strong: ({ children }: any) => <strong className="font-bold text-slate-800 dark:text-slate-200">{children}</strong>,
+  em: ({ children }: any) => <em className="italic">{children}</em>,
+  code: ({ children }: any) => <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-[11px] font-mono text-slate-700 dark:text-slate-300">{children}</code>,
+};
 
 interface ContributorCardProps {
   key?: any;
@@ -106,23 +131,22 @@ export default function ContributorCard({
     if (!url) return null;
     let icon = <Globe className="h-4.5 w-4.5" />;
     let label = "Website";
-    let colorClass = "hover:text-amber-600 hover:bg-amber-50";
+    let colorClass = "hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-slate-800 dark:hover:text-amber-400";
 
     if (type === "github") {
       icon = <Github className="h-4.5 w-4.5" />;
       label = "GitHub";
-      colorClass = "hover:text-black hover:bg-gray-100";
+      colorClass = "hover:text-black hover:bg-gray-100 dark:hover:bg-slate-800 dark:hover:text-white";
     } else if (type === "linkedin") {
       icon = <Linkedin className="h-4.5 w-4.5" />;
       label = "LinkedIn";
-      colorClass = "hover:text-blue-600 hover:bg-blue-50";
+      colorClass = "hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 dark:hover:text-blue-400";
     } else if (type === "twitter") {
       icon = <Twitter className="h-4.5 w-4.5" />;
       label = "Twitter";
-      colorClass = "hover:text-sky-500 hover:bg-sky-50";
+      colorClass = "hover:text-sky-500 hover:bg-sky-50 dark:hover:bg-slate-800 dark:hover:text-sky-400";
     }
 
-    // Standardize URL protocol if needed
     const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
 
     return (
@@ -131,7 +155,7 @@ export default function ContributorCard({
         target="_blank"
         rel="noopener noreferrer"
         title={label}
-        className={`p-2.5 rounded-xl border border-gray-100 text-gray-500 transition-all ${colorClass}`}
+        className={`p-2.5 rounded-xl border border-gray-100 dark:border-slate-800 text-gray-500 dark:text-slate-400 transition-all ${colorClass}`}
       >
         {icon}
       </a>
@@ -164,15 +188,15 @@ export default function ContributorCard({
   };
 
   return (
-    <article className="flex flex-col h-full bg-white border-2 border-solid border-slate-300 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden relative">
+    <article className="flex flex-col h-full bg-white dark:bg-slate-900 border-2 border-solid border-slate-300 dark:border-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden relative">
       {contributor.flagged && (
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border-b border-red-100 text-[11px] text-red-750 font-bold select-none">
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-950/30 border-b border-red-100 dark:border-red-900/40 text-[11px] text-red-750 dark:text-red-300 font-bold select-none">
           <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-red-500 animate-pulse" />
           <span>Under Review: Flagged {contributor.flagCount && contributor.flagCount > 1 ? `(${contributor.flagCount} reports)` : ""}</span>
         </div>
       )}
       {contributor.hidden && (
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-[11px] text-slate-700 font-bold select-none">
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700/60 text-[11px] text-slate-700 dark:text-slate-300 font-bold select-none">
           <EyeOff className="h-3.5 w-3.5 shrink-0 text-slate-500" />
           <span>Hidden from general directory (Admin only view)</span>
         </div>
@@ -186,7 +210,7 @@ export default function ContributorCard({
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-start gap-3.5">
               {/* Dynamic Avatar */}
-              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl border border-slate-100 overflow-hidden shrink-0 shadow-xs relative">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shrink-0 shadow-xs relative">
                 {contributor.avatarUrl ? (
                   <img
                     src={contributor.avatarUrl}
@@ -201,30 +225,30 @@ export default function ContributorCard({
                 )}
               </div>
               <div>
-                <h4 className="font-sans font-bold text-slate-900 text-sm sm:text-base leading-snug">
+                <h4 className="font-sans font-bold text-slate-900 dark:text-white text-sm sm:text-base leading-snug">
                   {contributor.name}
                 </h4>
                 <div className="flex flex-wrap items-center gap-x-2 mt-0.5 text-xs font-bold">
                   <span className={activeTheme.primaryText}>{contributor.role}</span>
                   {contributor.company && (
                     <>
-                      <span className="text-slate-300">•</span>
-                      <span className="inline-flex items-center gap-1 text-slate-500 font-medium">
-                        <Building className="h-3.5 w-3.5 text-slate-400" />
+                      <span className="text-slate-300 dark:text-slate-600">•</span>
+                      <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400 font-medium">
+                        <Building className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
                         {contributor.company}
                       </span>
                     </>
                   )}
                 </div>
                 {contributor.phone && (
-                  <div className="flex items-center gap-1 mt-1 text-xs text-slate-500 font-medium select-text">
-                    <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  <div className="flex items-center gap-1 mt-1 text-xs text-slate-500 dark:text-slate-400 font-medium select-text">
+                    <Phone className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                     <span>{contributor.phone}</span>
                   </div>
                 )}
                 {contributor.email && (contributor.shareEmail !== false || isOwner || currentUserEmail === "bruce@mcpher.com") && (
-                  <div className="flex items-center gap-1 mt-1 text-xs text-slate-500 font-medium select-text">
-                    <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  <div className="flex items-center gap-1 mt-1 text-xs text-slate-500 dark:text-slate-400 font-medium select-text">
+                    <Mail className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
                     <span className="truncate">{contributor.email}</span>
                   </div>
                 )}
@@ -248,7 +272,7 @@ export default function ContributorCard({
                   return (
                     <span 
                       key={badge} 
-                      className="inline-flex items-center justify-center h-6 px-1.5 min-w-6 rounded-full text-[9px] font-extrabold tracking-tight uppercase bg-slate-500/10 text-slate-700 border border-slate-500/25 shadow-xs hover:scale-105 transition-transform cursor-help"
+                      className="inline-flex items-center justify-center h-6 px-1.5 min-w-6 rounded-full text-[9px] font-extrabold tracking-tight uppercase bg-slate-500/10 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-500/25 dark:border-slate-700 shadow-xs hover:scale-105 transition-transform cursor-help"
                       title={badge.charAt(0).toUpperCase() + badge.slice(1)}
                     >
                       {shortLabel}
@@ -258,7 +282,7 @@ export default function ContributorCard({
               </div>
 
               {contributor.hidden === true && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" title="Hidden from public registry">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700" title="Hidden from public registry">
                   <EyeOff className="h-2.5 w-2.5" />
                   Hidden
                 </span>
@@ -269,9 +293,13 @@ export default function ContributorCard({
 
           {/* Bio Description with interactive Truncation */}
           <div className="mb-4">
-            <p className={`text-xs sm:text-sm text-slate-600 leading-relaxed ${isExpanded ? "" : "line-clamp-3"}`}>
-              {contributor.bio || "No profile bio available."}
-            </p>
+            <div className={`markdown-body text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed ${isExpanded ? "" : "line-clamp-3"}`}>
+              {contributor.bio ? (
+                <Markdown components={markdownComponents}>{sanitizeMarkdownLinks(contributor.bio)}</Markdown>
+              ) : (
+                "No profile bio available."
+              )}
+            </div>
             {((contributor.bio && contributor.bio.length > 150) || contributor.slideNotes || (contributor.images && contributor.images.length > 0)) && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -294,13 +322,13 @@ export default function ContributorCard({
 
           {/* Slide Notes / Extra Descriptive Text */}
           {contributor.slideNotes && isExpanded && (
-            <div className="mt-3.5 pt-3.5 border-t border-dashed border-slate-150 mb-4 animate-fade-in text-[12px]">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 leading-none">
+            <div className="mt-3.5 pt-3.5 border-t border-dashed border-slate-150 dark:border-slate-800 mb-4 animate-fade-in text-[12px]">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1 leading-none">
                 Slide Context & Contextual Snippet
               </span>
-              <p className="text-xs text-slate-600 leading-relaxed italic bg-slate-50/70 p-3 rounded-xl border border-slate-100">
-                "{contributor.slideNotes}"
-              </p>
+              <div className="markdown-body text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50/70 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                <Markdown components={markdownComponents}>{sanitizeMarkdownLinks(contributor.slideNotes)}</Markdown>
+              </div>
             </div>
           )}
 
@@ -310,7 +338,7 @@ export default function ContributorCard({
               {displayedSkills.map((skill, index) => (
                 <span
                   key={index}
-                  className={`px-2.5 py-1 text-[11px] font-semibold bg-slate-50 text-slate-600 rounded-lg border border-slate-110 hover:${activeTheme.primaryBgLight} hover:${activeTheme.primaryText} hover:${activeTheme.primaryBorderLight} transition-colors`}
+                  className={`px-2.5 py-1 text-[11px] font-semibold bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-110 dark:border-slate-700 hover:${activeTheme.primaryBgLight} hover:${activeTheme.primaryText} hover:${activeTheme.primaryBorderLight} transition-colors`}
                 >
                   {skill}
                 </span>
@@ -318,7 +346,7 @@ export default function ContributorCard({
               {hasMoreSkills && (
                 <button
                   onClick={() => setShowAllSkills(!showAllSkills)}
-                  className={`px-2 py-0.5 text-[10px] font-bold ${activeTheme.primaryText} bg-slate-50 border border-slate-200 rounded-lg hover:${activeTheme.primaryBgLight} hover:${activeTheme.primaryBorderLight} transition-all cursor-pointer`}
+                  className={`px-2 py-0.5 text-[10px] font-bold ${activeTheme.primaryText} bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:${activeTheme.primaryBgLight} hover:${activeTheme.primaryBorderLight} transition-all cursor-pointer`}
                 >
                   {showAllSkills ? "show less" : `...+${sortedSkills.length - SKILL_LIMIT} more`}
                 </button>
@@ -339,7 +367,7 @@ export default function ContributorCard({
                 {contributor.images.map((imgSrc, idx) => (
                   <div
                     key={idx}
-                    className={`snap-start shrink-0 border border-slate-100 rounded-xl overflow-hidden bg-slate-50 aspect-video relative group/item cursor-zoom-in shadow-xs ${
+                    className={`snap-start shrink-0 border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-900 aspect-video relative group/item cursor-zoom-in shadow-xs ${
                       contributor.images!.length > 1 ? "w-[68%]" : "w-full"
                     }`}
                     onClick={() => {
@@ -367,7 +395,7 @@ export default function ContributorCard({
                       e.stopPropagation();
                       scrollPrev();
                     }}
-                    className="absolute left-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/95 hover:bg-white text-slate-700 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none cursor-pointer z-10 border border-slate-100"
+                    className="absolute left-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/95 dark:bg-slate-800/95 hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-250 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none cursor-pointer z-10 border border-slate-100 dark:border-slate-700"
                     title="Previous Slide"
                   >
                     <ChevronLeft className="h-3.5 w-3.5" />
@@ -380,7 +408,7 @@ export default function ContributorCard({
                       e.stopPropagation();
                       scrollNext();
                     }}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/95 hover:bg-white text-slate-700 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none cursor-pointer z-10 border border-slate-100"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/95 dark:bg-slate-800/95 hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-250 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none cursor-pointer z-10 border border-slate-100 dark:border-slate-700"
                     title="Next Slide"
                   >
                     <ChevronRight className="h-3.5 w-3.5" />
@@ -392,7 +420,7 @@ export default function ContributorCard({
         )}
 
         {/* Footer Actions block */}
-        <div className="border-t border-slate-100 pt-4 mt-auto">
+        <div className="border-t border-slate-100 dark:border-slate-800/80 pt-4 mt-auto">
           <div className="flex flex-wrap items-center justify-between gap-3">
             {/* Social channels */}
             <div className="flex flex-wrap items-center gap-1.5 max-w-[55%]">
@@ -411,9 +439,9 @@ export default function ContributorCard({
                     target="_blank"
                     rel="noopener noreferrer"
                     title={link.label}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-gray-100 text-[11px] font-semibold text-slate-600 bg-slate-50/60 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-100 transition-all cursor-pointer"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-gray-100 dark:border-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-50/60 dark:bg-slate-800/60 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-100 dark:hover:bg-slate-700 transition-all cursor-pointer"
                   >
-                    <Link2 className="h-3 w-3 text-slate-400" />
+                    <Link2 className="h-3 w-3 text-slate-400 dark:text-slate-550" />
                     <span>{link.label}</span>
                   </a>
                 );
@@ -427,7 +455,7 @@ export default function ContributorCard({
                 <button
                   onClick={() => onReport(contributor)}
                   title="Report profile as inappropriate"
-                  className="flex items-center justify-center p-2.5 rounded-xl border border-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 hover:border-red-100 transition"
+                  className="flex items-center justify-center p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-100 transition"
                 >
                   <Flag className="h-4 w-4" />
                 </button>
@@ -438,16 +466,16 @@ export default function ContributorCard({
                 <button
                   onClick={() => onToggleHide(contributor)}
                   title={contributor.hidden ? "Unhide this profile card" : "Hide this profile card from the public"}
-                  className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition"
+                  className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-350 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                 >
                   {contributor.hidden ? (
                     <>
-                      <Eye className="h-3.5 w-3.5 text-blue-600" />
+                      <Eye className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                       <span>Show</span>
                     </>
                   ) : (
                     <>
-                      <EyeOff className="h-3.5 w-3.5 text-slate-500" />
+                      <EyeOff className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                       <span>Hide</span>
                     </>
                   )}
@@ -459,7 +487,7 @@ export default function ContributorCard({
                 <button
                   onClick={() => onEdit(contributor)}
                   title="Admin: edit profile"
-                  className={`flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold ${activeTheme.primaryText} ${activeTheme.primaryBgLight} rounded-xl ${activeTheme.primaryBgLightHover} transition border ${activeTheme.primaryBorderLight}`}
+                  className={`flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold ${activeTheme.primaryText} ${activeTheme.primaryBgLight} dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 rounded-xl ${activeTheme.primaryBgLightHover} transition border ${activeTheme.primaryBorderLight}`}
                 >
                   <Edit3 className="h-3.5 w-3.5" />
                   <span>Admin Edit</span>
@@ -471,7 +499,7 @@ export default function ContributorCard({
                 <button
                   onClick={() => onDelete(contributor)}
                   title="Admin: delete profile"
-                  className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold text-red-650 bg-red-50 border border-red-100 rounded-xl hover:bg-red-100 transition"
+                  className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold text-red-650 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/40 rounded-xl hover:bg-red-100 dark:hover:bg-red-900 transition"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>Delete</span>
@@ -483,7 +511,7 @@ export default function ContributorCard({
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => onEdit(contributor)}
-                    className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold ${activeTheme.primaryText} ${activeTheme.primaryBgLight} rounded-xl ${activeTheme.primaryBgLightHover} transition border ${activeTheme.primaryBorderLight}`}
+                    className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold ${activeTheme.primaryText} ${activeTheme.primaryBgLight} dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700 rounded-xl ${activeTheme.primaryBgLightHover} transition border ${activeTheme.primaryBorderLight}`}
                   >
                     <Edit3 className="h-3.5 w-3.5" />
                     Edit
@@ -492,7 +520,7 @@ export default function ContributorCard({
                     <button
                       onClick={() => onDelete(contributor)}
                       title="Permanently delete your profile"
-                      className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold text-red-650 bg-red-50 border border-red-100 rounded-xl hover:bg-red-100 transition"
+                      className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold text-red-650 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/40 rounded-xl hover:bg-red-100 dark:hover:bg-red-950/60 transition"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       <span>Delete</span>
@@ -502,7 +530,7 @@ export default function ContributorCard({
               ) : isClaimable && currentUserId ? (
                 <button
                   onClick={() => onClaim(contributor)}
-                  className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-slate-700 bg-slate-50 rounded-xl hover:bg-slate-100 transition border border-slate-200"
+                  className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-750"
                 >
                   <UserCheck className="h-3.5 w-3.5" />
                   Claim Profile
@@ -512,7 +540,7 @@ export default function ContributorCard({
                   onClick={() => {
                     alert("Please sign in using the button at the top-right of the page to contact this consultant.");
                   }}
-                  className="flex items-center gap-1.5 px-4.5 py-2.5 text-xs font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded-xl transition cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-4.5 py-2.5 text-xs font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800 rounded-xl transition cursor-not-allowed"
                   title="Sign in to contact"
                 >
                   <MessageSquare className="h-3.5 w-3.5" />
